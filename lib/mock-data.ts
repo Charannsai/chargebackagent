@@ -391,14 +391,18 @@ class MockStore {
     const dispute = this.disputes.get(run.dispute_id);
     if (dispute) {
       dispute.latest_run_id = run.id;
-      if (run.final_verdict) {
-        if (run.final_verdict === 'REPRESENT_DISPUTE') {
+      // Only set to resolved if human already reviewed/approved, otherwise mark as UNDER_INVESTIGATION
+      if (run.human_action === 'APPROVED' || run.human_action === 'OVERRIDDEN') {
+        const effective = run.human_override_verdict || run.final_verdict;
+        if (effective === 'REPRESENT_DISPUTE') {
           dispute.status = 'RESOLVED_REPRESENTED';
-        } else if (run.final_verdict === 'ACCEPT_REFUND') {
+        } else if (effective === 'ACCEPT_REFUND') {
           dispute.status = 'RESOLVED_REFUNDED';
-        } else if (run.final_verdict === 'ESCALATE_TO_HUMAN') {
+        } else if (effective === 'ESCALATE_TO_HUMAN') {
           dispute.status = 'ESCALATED';
         }
+      } else {
+        dispute.status = 'UNDER_INVESTIGATION';
       }
     }
   }

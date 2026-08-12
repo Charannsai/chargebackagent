@@ -72,17 +72,17 @@ export function DisputeTable({
         );
       case 'UNDER_INVESTIGATION':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-charcoal-100 text-charcoal-800 border border-charcoal-300">
-            <span className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-ping"></span>
-            Investigating...
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+            Ready for Sign-Off
           </span>
         );
       case 'PENDING':
       default:
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-charcoal-100 text-charcoal-700 border border-charcoal-200">
-            <Clock className="w-3.5 h-3.5 text-charcoal-500" />
-            Pending Action
+            <Clock className="w-3.5 h-3.5 text-charcoal-400" />
+            Pending Resolution
           </span>
         );
     }

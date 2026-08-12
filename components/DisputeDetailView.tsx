@@ -324,7 +324,7 @@ export function DisputeDetailView({
             </span>
             {dispute.status === 'RESOLVED_REPRESENTED' && (
               <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-lime-50 text-lime-800 border border-lime-200">
-                Represented
+                Represented (Won)
               </span>
             )}
             {dispute.status === 'RESOLVED_REFUNDED' && (
@@ -335,6 +335,16 @@ export function DisputeDetailView({
             {dispute.status === 'ESCALATED' && (
               <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-800 border border-amber-200">
                 Escalated to Ops
+              </span>
+            )}
+            {dispute.status === 'UNDER_INVESTIGATION' && (
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-blue-50 text-blue-800 border border-blue-200">
+                AI Investigated (Pending Sign-off)
+              </span>
+            )}
+            {dispute.status === 'PENDING' && (
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-charcoal-100 text-charcoal-700 border border-charcoal-200">
+                Pending Action
               </span>
             )}
           </div>
