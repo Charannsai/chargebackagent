@@ -27,6 +27,10 @@ export const SEED_DISPUTES: Dispute[] = [
     network: 'Visa',
     dispute_date: '2026-08-08T10:30:00Z',
     due_date: '2026-08-18T18:00:00Z',
+    customer_claim_statement:
+      'Cardholder filed dispute alleging non-receipt: "I ordered Sony WH-1000XM5 headphones on Aug 1 for ₹14,999. The package never arrived at my Indiranagar address. The merchant did not issue an immediate refund, so I am requesting an unconditional bank chargeback."',
+    merchant_fulfillment_note:
+      'Merchant dispatched order on Aug 1 via BlueDart (AWB: BD-884920192). BlueDart telemetry confirms delivery on Aug 4 with recipient signature and OTP 7892 verification matching the geofence.',
     created_at: '2026-08-08T10:30:00Z',
   },
   {
@@ -44,6 +48,10 @@ export const SEED_DISPUTES: Dispute[] = [
     network: 'Mastercard',
     dispute_date: '2026-08-10T14:15:00Z',
     due_date: '2026-08-20T18:00:00Z',
+    customer_claim_statement:
+      'Cardholder filed unauthorized fraud dispute: "I discovered an unknown charge of ₹48,500 for a luxury watch on my statement. I did not make or authorize this purchase, never visited this store, and believe my card credentials were stolen in a phishing attack."',
+    merchant_fulfillment_note:
+      'Order placed at 2:14 AM from a German Tor exit node IP. Shipped via Delhivery (AWB: DL-991204859) to an abandoned warehouse; delivery failed (RTO initiated).',
     created_at: '2026-08-10T14:15:00Z',
   },
   {
@@ -61,6 +69,10 @@ export const SEED_DISPUTES: Dispute[] = [
     network: 'RuPay',
     dispute_date: '2026-08-11T09:00:00Z',
     due_date: '2026-08-21T18:00:00Z',
+    customer_claim_statement:
+      'Cardholder filed non-delivery dispute: "I purchased a bridal gold zari silk saree for ₹32,000 on July 16th. Over 25 days have elapsed and the courier tracking has been stalled in transit since July 20th with no updates. I request a complete refund."',
+    merchant_fulfillment_note:
+      'Dispatched via Delhivery Surface (AWB: DL-773019482) on July 17. Telemetry shows package stalled at Nagpur sorting hub for >20 days without departure scan.',
     created_at: '2026-08-11T09:00:00Z',
   },
   {
@@ -78,6 +90,10 @@ export const SEED_DISPUTES: Dispute[] = [
     network: 'Visa',
     dispute_date: '2026-08-12T11:45:00Z',
     due_date: '2026-08-22T18:00:00Z',
+    customer_claim_statement:
+      'Cardholder filed unrecognized billing dispute: "My card was billed ₹4,499 for annual cloud team access. I believed I was on a trial and did not intend to renew. I dispute this charge."',
+    merchant_fulfillment_note:
+      'Cardholder verified payment via 3DS 2.0 corporate card and subsequently logged into the cloud developer console 18 times post-billing.',
     created_at: '2026-08-12T11:45:00Z',
   },
 ];

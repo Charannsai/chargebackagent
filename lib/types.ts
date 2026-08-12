@@ -34,6 +34,8 @@ export interface Dispute {
   network: 'Visa' | 'Mastercard' | 'RuPay';
   dispute_date: string;
   due_date: string;
+  customer_claim_statement?: string; // Plain-English description of what the customer is claiming
+  merchant_fulfillment_note?: string; // Stated merchant context
   notes?: string;
   latest_run_id?: string;
   created_at: string;

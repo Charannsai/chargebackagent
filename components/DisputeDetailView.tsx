@@ -313,6 +313,41 @@ export function DisputeDetailView({
       </div>
 
       {/* ==================================================== */}
+      {/* CLEAR ISSUE SUMMARY: Customer Claim vs Merchant Stance */}
+      {/* ==================================================== */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Customer's Claim */}
+        <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-rose-50 text-rose-700 flex items-center justify-center font-bold text-xs border border-rose-200">
+              !
+            </div>
+            <span className="text-xs font-bold text-charcoal-900 uppercase tracking-wider">
+              Cardholder's Stated Issue & Bank Claim
+            </span>
+          </div>
+          <p className="text-xs text-charcoal-800 bg-rose-50/40 p-3.5 rounded-2xl border border-rose-100/80 italic leading-relaxed">
+            "{dispute.customer_claim_statement || 'Customer filed a formal chargeback alleging non-delivery or unauthorized billing.'}"
+          </p>
+        </div>
+
+        {/* Merchant's Stance & Evidence Baseline */}
+        <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-charcoal-100 text-charcoal-700 flex items-center justify-center font-bold text-xs border border-charcoal-200">
+              i
+            </div>
+            <span className="text-xs font-bold text-charcoal-900 uppercase tracking-wider">
+              Merchant Order & Fulfillment Record
+            </span>
+          </div>
+          <p className="text-xs text-charcoal-800 bg-charcoal-50 p-3.5 rounded-2xl border border-charcoal-200/80 leading-relaxed">
+            {dispute.merchant_fulfillment_note || 'Order was processed via Razorpay gateway and dispatched via third-party logistics.'}
+          </p>
+        </div>
+      </div>
+
+      {/* ==================================================== */}
       {/* NAVIGATION TABS                                     */}
       {/* ==================================================== */}
       <div className="flex items-center border-b border-charcoal-200 bg-white rounded-2xl px-4 shadow-subtle overflow-x-auto">

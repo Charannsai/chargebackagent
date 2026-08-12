@@ -175,18 +175,23 @@ export function DisputeTable({
                   >
                     {/* Column 1: Dispute ID & Reason */}
                     <td className="py-4 px-6">
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-1 max-w-[280px]">
                         <span className="font-mono font-semibold text-charcoal-950 text-xs group-hover:text-lime-700 transition-colors">
                           {dispute.id}
                         </span>
                         <div>
                           <span
-                            className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-medium border ${reasonInfo.color}`}
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${reasonInfo.color}`}
                           >
                             {reasonInfo.label}
                           </span>
                         </div>
-                        <span className="text-[11px] text-charcoal-400">
+                        {dispute.customer_claim_statement && (
+                          <p className="text-[11px] text-charcoal-500 italic truncate" title={dispute.customer_claim_statement}>
+                            "{dispute.customer_claim_statement}"
+                          </p>
+                        )}
+                        <span className="text-[10.5px] text-charcoal-400">
                           Due by {formatDate(dispute.due_date)}
                         </span>
                       </div>
