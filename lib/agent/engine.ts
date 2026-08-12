@@ -4,11 +4,9 @@ import {
   AgentRun,
   AgentStep,
   AgentVerdict,
-  EvidenceEvaluation,
-  RepresentmentPackage,
   StepEventType,
 } from '../types';
-import { mockStore } from '../mock-data';
+import { dbService } from '../supabase';
 import { AGENT_TOOLS_SCHEMA, executeAgentTool } from './tools';
 import { SYSTEM_PROMPT, buildDisputeIntakePrompt } from './prompts';
 
@@ -23,7 +21,7 @@ export async function runAgentInvestigation(
   options: InvestigationOptions
 ): Promise<AgentRun> {
   const { disputeId, operatorGuidance, onStep } = options;
-  const dispute = mockStore.getDispute(disputeId);
+  const dispute = await dbService.getDispute(disputeId);
   if (!dispute) {
     throw new Error(`Dispute not found: ${disputeId}`);
   }
@@ -69,6 +67,8 @@ export async function runAgentInvestigation(
     if (onStep) {
       onStep(step);
     }
+    // Asynchronously log step to Supabase if connected
+    dbService.saveAgentStep(step).catch(() => {});
     return step;
   };
 
@@ -95,7 +95,7 @@ export async function runAgentInvestigation(
   }
 
   run.completed_at = new Date().toISOString();
-  mockStore.saveAgentRun(run);
+  await dbService.saveAgentRun(run);
   return run;
 }
 
@@ -130,7 +130,6 @@ async function runGroqAutonomousLoop(
     iterations++;
     run.iterations = iterations;
 
-    const startTime = Date.now();
     const response = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages,
@@ -246,8 +245,8 @@ async function runDeterministicEngine(
   ) => AgentStep,
   operatorGuidance?: string
 ): Promise<void> {
-  const tx = mockStore.getTransaction(dispute.transaction_id);
-  const user = mockStore.getUserProfileById(dispute.user_id) || mockStore.getUserProfileByEmail(dispute.customer_email);
+  const tx = await dbService.getTransaction(dispute.transaction_id);
+  const user = (await dbService.getUserProfileById(dispute.user_id)) || (await dbService.getUserProfileByEmail(dispute.customer_email));
 
   // Helper for realistic pacing
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -310,7 +309,7 @@ async function runDeterministicEngine(
       emitStep('EVALUATING', 'Correlating logistics telemetry, geofence records, and customer dispute history...');
       await delay(750);
 
-      const logistics = mockStore.getLogisticsRecord(tx.shipping_tracking_no);
+      const logistics = await dbService.getLogisticsRecord(tx.shipping_tracking_no);
       if (logistics?.status === 'DELIVERED') {
         // Case 1: Friendly Fraud -> Represent
         run.final_verdict = 'REPRESENT_DISPUTE';

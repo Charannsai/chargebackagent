@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mockStore } from '@/lib/mock-data';
+import { dbService } from '@/lib/supabase';
 import { Dispute, Transaction, UserProfile, LogisticsRecord, AgentVerdict } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -7,16 +7,22 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    const action = searchParams.get('action');
     const id = searchParams.get('id');
 
+    if (action === 'reset') {
+      await dbService.resetToDefaults();
+      return NextResponse.json({ success: true, message: 'Store reset to seed data' });
+    }
+
     if (id) {
-      const dispute = mockStore.getDispute(id);
+      const dispute = await dbService.getDispute(id);
       if (!dispute) {
         return NextResponse.json({ error: 'Dispute not found' }, { status: 404 });
       }
-      const transaction = mockStore.getTransaction(dispute.transaction_id);
-      const userProfile = mockStore.getUserProfileById(dispute.user_id);
-      const runs = mockStore.getAgentRunsForDispute(id);
+      const transaction = await dbService.getTransaction(dispute.transaction_id);
+      const userProfile = (await dbService.getUserProfileById(dispute.user_id)) || (await dbService.getUserProfileByEmail(dispute.customer_email));
+      const runs = await dbService.getAgentRunsForDispute(id);
 
       return NextResponse.json({
         dispute,
@@ -26,7 +32,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const disputes = mockStore.getDisputes();
+    const disputes = await dbService.getDisputes();
     return NextResponse.json({ disputes });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -45,7 +51,7 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const updatedRun = mockStore.applyHumanReview(
+    const updatedRun = await dbService.applyHumanReview(
       disputeId,
       runId,
       action,
@@ -57,7 +63,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Dispute or Run not found' }, { status: 404 });
     }
 
-    const dispute = mockStore.getDispute(disputeId);
+    const dispute = await dbService.getDispute(disputeId);
     return NextResponse.json({ success: true, run: updatedRun, dispute });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -69,7 +75,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     if (body.action === 'reset') {
-      mockStore.resetToDefaults();
+      await dbService.resetToDefaults();
       return NextResponse.json({ success: true, message: 'Store reset to seed data' });
     }
 
@@ -94,6 +100,8 @@ export async function POST(req: NextRequest) {
       network: body.network || 'Visa',
       dispute_date: timestamp,
       due_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+      customer_claim_statement: `Cardholder filed dispute alleging ${body.reason || 'dispute'}: "I request a bank chargeback."`,
+      merchant_fulfillment_note: `Dispatched order via ${body.shipping_carrier || 'BlueDart Express'}.`,
       created_at: timestamp,
     };
 
@@ -169,7 +177,7 @@ export async function POST(req: NextRequest) {
       };
     }
 
-    const created = mockStore.createCustomDispute({
+    const created = await dbService.createCustomDispute({
       dispute: newDispute,
       transaction: newTx,
       userProfile: newUser,

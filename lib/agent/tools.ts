@@ -1,4 +1,4 @@
-import { mockStore } from '../mock-data';
+import { dbService } from '../supabase';
 import { RiskAssessment } from '../types';
 
 // ==========================================
@@ -99,7 +99,7 @@ export async function executeAgentTool(
   switch (toolName) {
     case 'get_transaction_details': {
       const txId = args.transaction_id || '';
-      const tx = mockStore.getTransaction(txId);
+      const tx = await dbService.getTransaction(txId);
       if (!tx) {
         return {
           success: false,
@@ -135,7 +135,7 @@ export async function executeAgentTool(
 
     case 'get_user_behavior_profile': {
       const email = args.email || '';
-      const profile = mockStore.getUserProfileByEmail(email);
+      const profile = await dbService.getUserProfileByEmail(email);
       if (!profile) {
         return {
           success: false,
@@ -155,7 +155,7 @@ export async function executeAgentTool(
           chargeback_count: profile.chargeback_history_count,
           chargeback_ratio: profile.chargeback_ratio,
           risk_flag: profile.risk_flag,
-          trusted_devices_count: profile.known_device_ids.length,
+          trusted_devices_count: Array.isArray(profile.known_device_ids) ? profile.known_device_ids.length : 0,
           last_known_ip: profile.last_known_ip,
         },
         label: `Customer history checked: ${profile.email} (Risk: ${profile.risk_flag})`,
@@ -164,7 +164,7 @@ export async function executeAgentTool(
 
     case 'verify_delivery_courier': {
       const trackingNo = args.tracking_number || '';
-      const logistics = mockStore.getLogisticsRecord(trackingNo);
+      const logistics = await dbService.getLogisticsRecord(trackingNo);
       if (!logistics) {
         return {
           success: false,
@@ -177,6 +177,7 @@ export async function executeAgentTool(
           label: `Delivery lookup: No records for ${trackingNo}`,
         };
       }
+      const events = Array.isArray(logistics.events) ? logistics.events : [];
       return {
         success: true,
         data: {
@@ -188,8 +189,8 @@ export async function executeAgentTool(
           signature_captured: logistics.signature_captured,
           signature_name: logistics.signature_name,
           gps_coordinates: logistics.gps_coordinates,
-          events_count: logistics.events.length,
-          latest_event: logistics.events[logistics.events.length - 1],
+          events_count: events.length,
+          latest_event: events.length > 0 ? events[events.length - 1] : null,
         },
         label: `Delivery evidence verified: ${logistics.carrier} (${logistics.status})`,
       };
@@ -198,8 +199,8 @@ export async function executeAgentTool(
     case 'calculate_risk_score': {
       const userId = args.user_id || '';
       const txId = args.transaction_id || '';
-      const tx = mockStore.getTransaction(txId);
-      const user = mockStore.getUserProfileById(userId);
+      const tx = await dbService.getTransaction(txId);
+      const user = await dbService.getUserProfileById(userId);
 
       let score = 15; // default baseline low risk
       let ipMismatch = false;
@@ -209,7 +210,7 @@ export async function executeAgentTool(
       let trustDays = 365;
 
       if (user) {
-        priorDisputes = user.chargeback_history_count;
+        priorDisputes = user.chargeback_history_count || 0;
         const createdDate = new Date(user.account_created_at).getTime();
         trustDays = Math.max(1, Math.round((Date.now() - createdDate) / (1000 * 60 * 60 * 24)));
         if (priorDisputes > 0) score += priorDisputes * 25;

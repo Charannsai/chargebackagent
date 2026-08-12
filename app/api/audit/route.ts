@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mockStore } from '@/lib/mock-data';
+import { dbService } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const runId = searchParams.get('runId');
 
     if (runId) {
-      const run = mockStore.getAgentRun(runId);
+      const run = await dbService.getAgentRun(runId);
       if (!run) {
         return NextResponse.json({ error: 'Run not found' }, { status: 404 });
       }
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (disputeId) {
-      const runs = mockStore.getAgentRunsForDispute(disputeId);
+      const runs = await dbService.getAgentRunsForDispute(disputeId);
       return NextResponse.json({ runs });
     }
 
