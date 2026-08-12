@@ -176,11 +176,18 @@ export function DisputeDetailView({
     }
   };
 
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
   const handleApplyReview = async (
     action: 'APPROVED' | 'OVERRIDDEN',
     overrideVerdict?: AgentVerdict
   ) => {
-    if (!dispute || !currentRun) return;
+    if (!dispute) return;
     setIsSubmittingReview(true);
 
     try {
@@ -189,7 +196,7 @@ export function DisputeDetailView({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           disputeId: dispute.id,
-          runId: currentRun.id,
+          runId: currentRun?.id || 'manual',
           action,
           overrideVerdict,
           notes: overrideNotes || undefined,
@@ -199,11 +206,35 @@ export function DisputeDetailView({
       if (res.ok) {
         const result = await res.json();
         setCurrentRun(result.run);
+        setHasStartedInvestigation(true);
         onRunComplete();
         setShowOverrideMenu(false);
+
+        // Update local dispute status
+        if (result.dispute) {
+          dispute.status = result.dispute.status;
+        }
+
+        // Update rebuttal text dynamically if overridden
+        if (overrideVerdict === 'ACCEPT_REFUND') {
+          setRebuttalText(
+            `RAZORPAY DISPUTE RESOLUTION ADVICE - REFUND RECOMMENDED\nDate: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}\nDispute ID: ${dispute.id}\nCardholder: ${dispute.customer_name}\nDisputed Amount: ₹${dispute.amount.toLocaleString('en-IN')}\n\nOPERATOR OVERRIDE ACTION:\nOperator reviewed case facts and determined that accepting this dispute and initiating an immediate credit is the optimal resolution.\n\nReason: ${overrideNotes || 'Manual risk supervisor override'}`
+          );
+          showToast(`Verdict overridden to: Accept Full Refund`);
+        } else if (overrideVerdict === 'REPRESENT_DISPUTE') {
+          setRebuttalText(
+            `FORMAL CHARGEBACK REPRESENTMENT REBUTTAL\nDate: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}\nMerchant: ${dispute.merchant_name}\nCardholder Name: ${dispute.customer_name}\nARN: ${dispute.arn}\nDisputed Amount: ₹${dispute.amount.toLocaleString('en-IN')}\n\nSTATEMENT OF REBUTTAL:\nThe merchant respectfully contests the chargeback claim. Sufficient authorization and fulfillment evidence exists to validate this transaction.\n\nOperator Note: ${overrideNotes || 'Representment approved by human operator'}`
+          );
+          showToast(`Verdict overridden to: Represent Dispute`);
+        } else if (overrideVerdict === 'ESCALATE_TO_HUMAN') {
+          showToast(`Verdict overridden to: Escalate to Operations Desk`);
+        } else if (action === 'APPROVED') {
+          showToast(`Resolution approved & submitted to card network!`);
+        }
       }
     } catch (err) {
       console.error('Review submit error:', err);
+      showToast('Failed to apply review action');
     } finally {
       setIsSubmittingReview(false);
     }
@@ -235,7 +266,15 @@ export function DisputeDetailView({
   const reasonInfo = getReasonLabel(dispute.reason);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-fade-in pb-12">
+    <div className="max-w-6xl mx-auto space-y-6 animate-fade-in pb-12 relative">
+      {/* Floating Action Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-20 right-8 z-50 bg-charcoal-950 text-white px-4 py-3 rounded-2xl shadow-2xl border border-charcoal-800 flex items-center gap-2.5 text-xs font-semibold animate-slide-up">
+          <div className="w-2.5 h-2.5 rounded-full bg-lime-400 animate-ping"></div>
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* ==================================================== */}
       {/* 1. TOP NAVIGATION BAR                                */}
       {/* ==================================================== */}
@@ -638,7 +677,7 @@ export function DisputeDetailView({
                   <div className="flex items-start justify-between">
                     <div>
                       <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-600 block">
-                        AI Recommended Resolution
+                        {isOverridden ? 'Operator Overridden Verdict (Manual Decision)' : 'AI Recommended Resolution'}
                       </span>
                       <h3 className="text-xl font-bold text-charcoal-950 mt-1">
                         {effectiveVerdict === 'REPRESENT_DISPUTE' && 'Represent Dispute (Reject Customer Claim)'}
@@ -652,7 +691,7 @@ export function DisputeDetailView({
                         {currentRun.confidence_score}%
                       </span>
                       <p className="text-[10px] text-charcoal-500 font-semibold uppercase">
-                        Confidence
+                        {isOverridden ? 'Manual Review' : 'Confidence'}
                       </p>
                     </div>
                   </div>
@@ -664,11 +703,18 @@ export function DisputeDetailView({
                     </div>
                   )}
                   {isOverridden && (
-                    <div className="mt-3.5 pt-3.5 border-t border-charcoal-200 flex items-center gap-1.5 text-xs text-charcoal-800 font-medium">
-                      <AlertCircle className="w-4 h-4 text-amber-600" />
-                      <span>
-                        Overridden to: {currentRun.human_override_verdict} ({currentRun.human_notes || 'Manual override'})
-                      </span>
+                    <div className="mt-3.5 pt-3.5 border-t border-charcoal-200/80 flex items-start gap-2 text-xs text-charcoal-900 font-medium">
+                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span>
+                          Decision explicitly overridden by Human Supervisor to: <strong>{currentRun.human_override_verdict}</strong>
+                        </span>
+                        {currentRun.human_notes && (
+                          <p className="text-[11px] text-charcoal-600 italic mt-0.5">
+                            Reason: "{currentRun.human_notes}"
+                          </p>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

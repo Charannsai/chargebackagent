@@ -428,14 +428,48 @@ class MockStore {
     overrideVerdict?: AgentRun['final_verdict'],
     notes?: string
   ): AgentRun | undefined {
-    const run = this.agentRuns.get(runId);
+    let run = this.agentRuns.get(runId);
     const dispute = this.disputes.get(disputeId);
-    if (!run || !dispute) return undefined;
+    if (!dispute) return undefined;
 
-    run.human_action = action;
-    run.human_override_verdict = overrideVerdict;
-    run.human_notes = notes;
-    run.reviewed_at = new Date().toISOString();
+    const timestamp = new Date().toISOString();
+
+    if (!run) {
+      // If no run existed yet, create a manual operator review run
+      run = {
+        id: `run_manual_${Date.now()}`,
+        dispute_id: disputeId,
+        started_at: timestamp,
+        completed_at: timestamp,
+        model: 'Manual Operator Decision',
+        engine_mode: 'demo',
+        iterations: 1,
+        final_verdict: overrideVerdict || 'REPRESENT_DISPUTE',
+        confidence_score: 100,
+        human_action: action,
+        human_override_verdict: overrideVerdict,
+        human_notes: notes,
+        reviewed_at: timestamp,
+        steps: [
+          {
+            id: `step_manual_1`,
+            agent_run_id: `run_manual_${Date.now()}`,
+            sequence: 1,
+            event_type: 'DECISION_READY',
+            label: `Manual operator decision: ${overrideVerdict || 'Approved'}`,
+            latency_ms: 0,
+            timestamp,
+          },
+        ],
+      };
+      this.agentRuns.set(run.id, run);
+      dispute.latest_run_id = run.id;
+    } else {
+      run.human_action = action;
+      run.human_override_verdict = overrideVerdict;
+      run.human_notes = notes;
+      run.reviewed_at = timestamp;
+    }
 
     const effectiveVerdict = action === 'OVERRIDDEN' && overrideVerdict ? overrideVerdict : run.final_verdict;
     if (effectiveVerdict === 'REPRESENT_DISPUTE') {
