@@ -12,13 +12,14 @@ import {
   Mail,
   Check,
   FileText,
-  CreditCard,
-  Truck,
-  User,
+  Clock,
+  Code2,
+  TrendingUp,
+  UserCheck,
 } from 'lucide-react';
 
 export default function KnowMorePage() {
-  const [activeTab, setActiveTab] = useState<'value' | 'how' | 'architecture'>('value');
+  const [activeTab, setActiveTab] = useState<'why' | 'how' | 'architecture'>('why');
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex flex-col font-sans selection:bg-lime-200 selection:text-lime-950">
@@ -39,153 +40,243 @@ export default function KnowMorePage() {
 
         {/* Clean Hero Header */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-charcoal-200 shadow-subtle space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-charcoal-950 tracking-tight">
-            Razorpay Chargeback Resolver
-          </h1>
+          <div className="flex items-center gap-2">
+            <span className="text-xl">💡</span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-charcoal-950 tracking-tight">
+              Why This Architecture Matters to Razorpay
+            </h1>
+          </div>
           <p className="text-xs sm:text-sm text-charcoal-600 leading-relaxed max-w-2xl">
-            An autonomous AI risk specialist that unifies gateway payment telemetry, courier proof of delivery, and customer risk profiling to investigate disputes and assemble verifiable representment packages.
+            A first-principles breakdown of the business value, deterministic agent loop, card network compliance protections, and human-in-the-loop safety architecture.
           </p>
         </div>
 
-        {/* Minimal Tab Switcher */}
+        {/* Tab Switcher */}
         <div className="bg-white rounded-2xl p-1.5 border border-charcoal-200 shadow-subtle flex items-center gap-1.5 overflow-x-auto">
           <button
-            onClick={() => setActiveTab('value')}
-            className={`flex-1 py-2 px-4 text-xs font-semibold rounded-xl transition-all whitespace-nowrap text-center ${
-              activeTab === 'value'
+            onClick={() => setActiveTab('why')}
+            className={`flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl transition-all whitespace-nowrap text-center ${
+              activeTab === 'why'
                 ? 'bg-charcoal-950 text-white shadow-sm'
                 : 'text-charcoal-600 hover:text-charcoal-950 hover:bg-charcoal-50'
             }`}
           >
-            Why it Matters
+            Why it Matters to Razorpay
           </button>
           <button
             onClick={() => setActiveTab('how')}
-            className={`flex-1 py-2 px-4 text-xs font-semibold rounded-xl transition-all whitespace-nowrap text-center ${
+            className={`flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl transition-all whitespace-nowrap text-center ${
               activeTab === 'how'
                 ? 'bg-charcoal-950 text-white shadow-sm'
                 : 'text-charcoal-600 hover:text-charcoal-950 hover:bg-charcoal-50'
             }`}
           >
-            How it Works
+            How it Works (Operator Guide)
           </button>
           <button
             onClick={() => setActiveTab('architecture')}
-            className={`flex-1 py-2 px-4 text-xs font-semibold rounded-xl transition-all whitespace-nowrap text-center ${
+            className={`flex-1 py-2.5 px-4 text-xs font-semibold rounded-xl transition-all whitespace-nowrap text-center ${
               activeTab === 'architecture'
                 ? 'bg-charcoal-950 text-white shadow-sm'
                 : 'text-charcoal-600 hover:text-charcoal-950 hover:bg-charcoal-50'
             }`}
           >
-            Architecture
+            Architecture &amp; Prototype Note
           </button>
         </div>
 
         {/* ==================================================== */}
-        {/* TAB 1: WHY IT MATTERS                                */}
+        {/* TAB 1: WHY THIS ARCHITECTURE MATTERS TO RAZORPAY     */}
         {/* ==================================================== */}
-        {activeTab === 'value' && (
-          <div className="space-y-4 animate-fade-in">
-            {/* Value Item 1 */}
-            <div className="bg-white p-6 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2">
-              <div className="flex items-center gap-2.5">
-                <span className="w-6 h-6 rounded-full bg-charcoal-950 text-lime-400 font-bold text-xs flex items-center justify-center">
-                  1
-                </span>
-                <h3 className="text-sm font-bold text-charcoal-950">
-                  Solves a Real, High-Cost Payment Problem
-                </h3>
+        {activeTab === 'why' && (
+          <div className="space-y-5 animate-fade-in">
+            {/* 1. The Operational Bottleneck */}
+            <div className="group relative bg-white p-6 sm:p-8 rounded-3xl border border-charcoal-200 shadow-subtle overflow-hidden transition-all hover:border-charcoal-300">
+              {/* Big Faded Overlay Number 01 */}
+              <div className="absolute top-1 right-5 text-7xl sm:text-9xl font-black font-mono text-charcoal-100/70 select-none pointer-events-none [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)] transition-colors group-hover:text-lime-100/80">
+                01
               </div>
-              <p className="text-xs text-charcoal-600 leading-relaxed pl-8">
-                Payment disputes and friendly fraud cause major financial and operational losses for merchants. This agent directly impacts the bottom line by recovering legitimate revenue, eliminating chargeback penalties, and resolving disputes within network deadlines.
-              </p>
+
+              <div className="relative z-10 space-y-4">
+                <h3 className="text-base sm:text-lg font-bold text-charcoal-950 tracking-tight">
+                  The Operational Bottleneck (The $ Billion Problem)
+                </h3>
+
+                <div className="space-y-3 text-xs sm:text-[13px] leading-relaxed">
+                  <div className="p-4 rounded-2xl bg-charcoal-50/80 border border-charcoal-200/80 space-y-1">
+                    <span className="font-bold text-charcoal-900 block">The Status Quo:</span>
+                    <p className="text-charcoal-600">
+                      Payment disputes and chargebacks require risk analysts to manually open 4 to 5 different tools: the internal ledger, customer support tickets, payment gateway logs, and third-party logistics APIs (e.g., Delhivery, BlueDart). Each dispute takes <strong>15 to 30 minutes</strong> of human investigation.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-lime-50/70 border border-lime-200/90 space-y-1">
+                    <span className="font-bold text-lime-950 block">The Agent Solution:</span>
+                    <p className="text-lime-900">
+                      This system collapses that entire pipeline into <strong>10 seconds</strong>. By executing structured tool-calling parallelly, the agent aggregates ledger data, courier status, and risk signals instantly, drafting a complete evidence packet without human intervention.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Value Item 2 */}
-            <div className="bg-white p-6 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2">
-              <div className="flex items-center gap-2.5">
-                <span className="w-6 h-6 rounded-full bg-charcoal-950 text-lime-400 font-bold text-xs flex items-center justify-center">
-                  2
-                </span>
-                <h3 className="text-sm font-bold text-charcoal-950">
-                  Built from First Principles (No Framework Wrappers)
-                </h3>
+            {/* 2. Deterministic Execution over "Chatbot" Guesswork */}
+            <div className="group relative bg-white p-6 sm:p-8 rounded-3xl border border-charcoal-200 shadow-subtle overflow-hidden transition-all hover:border-charcoal-300">
+              {/* Big Faded Overlay Number 02 */}
+              <div className="absolute top-1 right-5 text-7xl sm:text-9xl font-black font-mono text-charcoal-100/70 select-none pointer-events-none [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)] transition-colors group-hover:text-lime-100/80">
+                02
               </div>
-              <p className="text-xs text-charcoal-600 leading-relaxed pl-8">
-                Rather than relying on generic chatbot wrappers, this resolver is engineered with a native autonomous state-machine loop and JSON-schema tool calling in TypeScript, ensuring deterministic, production-grade output control.
-              </p>
+
+              <div className="relative z-10 space-y-4">
+                <h3 className="text-base sm:text-lg font-bold text-charcoal-950 tracking-tight">
+                  Deterministic Execution over &quot;Chatbot&quot; Guesswork
+                </h3>
+
+                <div className="space-y-3 text-xs sm:text-[13px] leading-relaxed">
+                  <div className="p-4 rounded-2xl bg-charcoal-50/80 border border-charcoal-200/80 space-y-1">
+                    <span className="font-bold text-charcoal-900 block">Why it&apos;s not a wrapper:</span>
+                    <p className="text-charcoal-600">
+                      Traditional LLM chatbots hallucinate and are unreliable for financial operations.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-lime-50/70 border border-lime-200/90 space-y-1">
+                    <span className="font-bold text-lime-950 block">Deterministic State Machine:</span>
+                    <p className="text-lime-900">
+                      This prototype implements a <strong>strict state-machine loop</strong> utilizing JSON-schema tool calling. The LLM does not make decisions based on memory; it is forced to interact with deterministic APIs (mocked via Supabase) to gather verified facts before outputting a verdict. If a tool fails or returns missing data, the agent safely flags it for escalation.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Value Item 3 */}
-            <div className="bg-white p-6 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2">
-              <div className="flex items-center gap-2.5">
-                <span className="w-6 h-6 rounded-full bg-charcoal-950 text-lime-400 font-bold text-xs flex items-center justify-center">
-                  3
-                </span>
-                <h3 className="text-sm font-bold text-charcoal-950">
-                  Transparent &quot;Glass-Box&quot; Operational Trust
-                </h3>
+            {/* 3. Protecting Merchant Health & Card Network Compliance */}
+            <div className="group relative bg-white p-6 sm:p-8 rounded-3xl border border-charcoal-200 shadow-subtle overflow-hidden transition-all hover:border-charcoal-300">
+              {/* Big Faded Overlay Number 03 */}
+              <div className="absolute top-1 right-5 text-7xl sm:text-9xl font-black font-mono text-charcoal-100/70 select-none pointer-events-none [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)] transition-colors group-hover:text-lime-100/80">
+                03
               </div>
-              <p className="text-xs text-charcoal-600 leading-relaxed pl-8">
-                In fintech compliance, opaque AI cannot be trusted. The live decision trace logs every tool call, latency metric, and evidence signal in real time, keeping human operators in full control with mandatory sign-offs and overrides.
-              </p>
+
+              <div className="relative z-10 space-y-4">
+                <h3 className="text-base sm:text-lg font-bold text-charcoal-950 tracking-tight">
+                  Protecting Merchant Health &amp; Card Network Compliance
+                </h3>
+
+                <div className="space-y-3 text-xs sm:text-[13px] leading-relaxed">
+                  <div className="p-4 rounded-2xl bg-charcoal-50/80 border border-charcoal-200/80 space-y-1">
+                    <span className="font-bold text-charcoal-900 block">The Risk:</span>
+                    <p className="text-charcoal-600">
+                      If a merchant’s chargeback-to-transaction ratio exceeds <strong>0.9%</strong>, card networks (Visa/Mastercard) place them in high-risk monitoring programs, leading to massive fines and paused settlements.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-lime-50/70 border border-lime-200/90 space-y-1">
+                    <span className="font-bold text-lime-950 block">The Agent Solution:</span>
+                    <p className="text-lime-900">
+                      By automating the drafting of highly structured &quot;Representment&quot; packages (compelling evidence formatted precisely to card network rules), merchants can defend against friendly fraud faster, win more disputes, and keep their dispute ratio well below the danger threshold.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Safety First: Human-in-the-Loop (HITL) Guardrails */}
+            <div className="group relative bg-white p-6 sm:p-8 rounded-3xl border border-charcoal-200 shadow-subtle overflow-hidden transition-all hover:border-charcoal-300">
+              {/* Big Faded Overlay Number 04 */}
+              <div className="absolute top-1 right-5 text-7xl sm:text-9xl font-black font-mono text-charcoal-100/70 select-none pointer-events-none [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)] transition-colors group-hover:text-lime-100/80">
+                04
+              </div>
+
+              <div className="relative z-10 space-y-4">
+                <h3 className="text-base sm:text-lg font-bold text-charcoal-950 tracking-tight">
+                  Safety First: Human-in-the-Loop (HITL) Guardrails
+                </h3>
+
+                <div className="space-y-3 text-xs sm:text-[13px] leading-relaxed">
+                  <div className="p-4 rounded-2xl bg-charcoal-50/80 border border-charcoal-200/80 space-y-1">
+                    <span className="font-bold text-charcoal-900 block">Copilot, Not an Autopilot:</span>
+                    <p className="text-charcoal-600">
+                      Fully autonomous financial agents are a compliance risk. This system is designed as a <strong>Copilot, not an Autopilot</strong>.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-lime-50/70 border border-lime-200/90 space-y-1">
+                    <span className="font-bold text-lime-950 block">Mandatory Operator Sign-off:</span>
+                    <p className="text-lime-900">
+                      The agent does the heavy lifting—gathering evidence, checking risk heuristics, and drafting the response—but holds the final transaction state in suspense until a human operator reviews the live execution trace and clicks <strong>&quot;Approve &amp; Submit&quot;</strong> or applies an override.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
         {/* ==================================================== */}
-        {/* TAB 2: HOW IT WORKS                                  */}
+        {/* TAB 2: HOW IT WORKS (OPERATOR GUIDE)                 */}
         {/* ==================================================== */}
         {activeTab === 'how' && (
           <div className="space-y-4 animate-fade-in">
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-charcoal-200 shadow-subtle space-y-4">
               <h3 className="text-sm font-bold text-charcoal-950 uppercase tracking-wider">
-                Autonomous 4-Step Resolution Lifecycle
+                Autonomous Resolution Lifecycle
               </h3>
 
-              <div className="space-y-3 pt-1">
-                <div className="p-4 rounded-2xl bg-charcoal-50 border border-charcoal-200 flex items-start gap-3">
-                  <span className="w-6 h-6 rounded-full bg-charcoal-950 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
-                    1
-                  </span>
-                  <div className="space-y-0.5">
-                    <h4 className="font-bold text-charcoal-900 text-xs">Dispute Intake</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                {/* Step 1 */}
+                <div className="group relative p-5 rounded-2xl bg-charcoal-50/80 border border-charcoal-200 overflow-hidden space-y-2">
+                  <div className="absolute top-1 right-3 text-6xl font-black font-mono text-charcoal-200/60 select-none pointer-events-none [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)]">
+                    01
+                  </div>
+                  <div className="relative z-10 space-y-1">
+                    <h4 className="font-bold text-charcoal-900 text-xs uppercase tracking-wider">
+                      Dispute Intake
+                    </h4>
                     <p className="text-xs text-charcoal-600 leading-relaxed">
-                      Select any dispute from the queue to view the cardholder&apos;s stated bank claim against merchant fulfillment records.
+                      Select any dispute from the queue to inspect the cardholder&apos;s stated bank claim against merchant fulfillment records.
                     </p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-charcoal-50 border border-charcoal-200 flex items-start gap-3">
-                  <span className="w-6 h-6 rounded-full bg-lime-500 text-charcoal-950 font-bold text-xs flex items-center justify-center flex-shrink-0">
-                    2
-                  </span>
-                  <div className="space-y-0.5">
-                    <h4 className="font-bold text-charcoal-900 text-xs">Autonomous Tool Loop</h4>
+                {/* Step 2 */}
+                <div className="group relative p-5 rounded-2xl bg-charcoal-50/80 border border-charcoal-200 overflow-hidden space-y-2">
+                  <div className="absolute top-1 right-3 text-6xl font-black font-mono text-charcoal-200/60 select-none pointer-events-none [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)]">
+                    02
+                  </div>
+                  <div className="relative z-10 space-y-1">
+                    <h4 className="font-bold text-charcoal-900 text-xs uppercase tracking-wider">
+                      Autonomous Tool Loop
+                    </h4>
                     <p className="text-xs text-charcoal-600 leading-relaxed">
-                      Click &quot;Start AI Resolution&quot;. The agent dynamically queries 3DS authentication logs, verifies BlueDart/Delhivery OTP signatures, and inspects buyer fraud risk scores.
+                      Click &quot;Start AI Resolution&quot;. The agent dynamically queries 3DS authentication logs, verifies courier OTP signatures, and inspects fraud scores.
                     </p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-charcoal-50 border border-charcoal-200 flex items-start gap-3">
-                  <span className="w-6 h-6 rounded-full bg-charcoal-950 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
-                    3
-                  </span>
-                  <div className="space-y-0.5">
-                    <h4 className="font-bold text-charcoal-900 text-xs">Evidence Synthesis</h4>
+                {/* Step 3 */}
+                <div className="group relative p-5 rounded-2xl bg-charcoal-50/80 border border-charcoal-200 overflow-hidden space-y-2">
+                  <div className="absolute top-1 right-3 text-6xl font-black font-mono text-charcoal-200/60 select-none pointer-events-none [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)]">
+                    03
+                  </div>
+                  <div className="relative z-10 space-y-1">
+                    <h4 className="font-bold text-charcoal-900 text-xs uppercase tracking-wider">
+                      Evidence Synthesis
+                    </h4>
                     <p className="text-xs text-charcoal-600 leading-relaxed">
                       The agent scores evidence strength, checks corroborating signals, and drafts a formal representment rebuttal letter aligned with card network rules.
                     </p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-charcoal-50 border border-charcoal-200 flex items-start gap-3">
-                  <span className="w-6 h-6 rounded-full bg-charcoal-950 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
-                    4
-                  </span>
-                  <div className="space-y-0.5">
-                    <h4 className="font-bold text-charcoal-900 text-xs">Human Sign-Off</h4>
+                {/* Step 4 */}
+                <div className="group relative p-5 rounded-2xl bg-charcoal-50/80 border border-charcoal-200 overflow-hidden space-y-2">
+                  <div className="absolute top-1 right-3 text-6xl font-black font-mono text-charcoal-200/60 select-none pointer-events-none [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)]">
+                    04
+                  </div>
+                  <div className="relative z-10 space-y-1">
+                    <h4 className="font-bold text-charcoal-900 text-xs uppercase tracking-wider">
+                      Human Sign-Off
+                    </h4>
                     <p className="text-xs text-charcoal-600 leading-relaxed">
                       The dispute remains pending until the operator clicks &quot;Approve &amp; Submit&quot; or uses &quot;Override Verdict&quot; with custom notes.
                     </p>
@@ -197,12 +288,12 @@ export default function KnowMorePage() {
         )}
 
         {/* ==================================================== */}
-        {/* TAB 3: ARCHITECTURE & DISCLAIMER                     */}
+        {/* TAB 3: ARCHITECTURE & PROTOTYPE NOTE                 */}
         {/* ==================================================== */}
         {activeTab === 'architecture' && (
           <div className="space-y-4 animate-fade-in">
             {/* Prototype Note */}
-            <div className="bg-white p-6 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2">
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-lime-600" />
                 <h4 className="font-bold text-charcoal-950 text-xs uppercase tracking-wider">
@@ -217,10 +308,10 @@ export default function KnowMorePage() {
               </p>
             </div>
 
-            {/* Technical Highlights */}
+            {/* Technical Specs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-1">
-                <span className="font-bold text-charcoal-900 block">LLM Reasoning</span>
+                <span className="font-bold text-charcoal-900 block">LLM Reasoning Engine</span>
                 <p className="text-charcoal-500">
                   Groq / Llama 3.3 70B Versatile delivering deterministic JSON-schema tool execution with sub-second latency.
                 </p>
