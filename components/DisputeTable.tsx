@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Dispute, DisputeStatus } from '@/lib/types';
 import { formatINR, formatDate } from '@/lib/utils';
+import { CustomerClaimModal } from '@/components/CustomerClaimModal';
 import {
   Search,
   CheckCircle2,
@@ -13,6 +14,7 @@ import {
   ChevronRight,
   CreditCard,
   Building2,
+  BookOpen,
 } from 'lucide-react';
 
 interface DisputeTableProps {
@@ -29,6 +31,20 @@ export function DisputeTable({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
+  const [expandedClaimIds, setExpandedClaimIds] = useState<
+    Record<string, boolean>
+  >({});
+  const [activeClaimDispute, setActiveClaimDispute] = useState<Dispute | null>(
+    null
+  );
+
+  const toggleClaimExpand = (disputeId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedClaimIds((prev) => ({
+      ...prev,
+      [disputeId]: !prev[disputeId],
+    }));
+  };
 
   const handleRowClick = (dispute: Dispute) => {
     if (onSelectDispute) {
@@ -195,11 +211,43 @@ export function DisputeTable({
                             {reasonInfo.label}
                           </span>
                         </div>
-                        {dispute.customer_claim_statement && (
-                          <p className="text-[11px] text-charcoal-500 italic truncate" title={dispute.customer_claim_statement}>
-                            "{dispute.customer_claim_statement}"
-                          </p>
-                        )}
+                        {dispute.customer_claim_statement && (() => {
+                          const isClaimExpanded = Boolean(
+                            expandedClaimIds[dispute.id]
+                          );
+                          return (
+                            <div
+                              onClick={(e) => toggleClaimExpand(dispute.id, e)}
+                              className="group/claim p-1.5 -ml-1 rounded-lg hover:bg-lime-50/60 border border-transparent hover:border-lime-200 transition-all cursor-pointer select-none space-y-1"
+                              title={
+                                isClaimExpanded
+                                  ? 'Click to collapse'
+                                  : 'Click to read full claim statement'
+                              }
+                            >
+                              <p
+                                className={`text-[11px] leading-relaxed transition-all ${
+                                  isClaimExpanded
+                                    ? 'not-italic font-normal text-charcoal-900'
+                                    : 'italic text-charcoal-500 line-clamp-1 truncate max-w-[260px]'
+                                }`}
+                              >
+                                &quot;{dispute.customer_claim_statement}&quot;
+                              </p>
+                              <div className="flex items-center justify-between">
+                                <button
+                                  type="button"
+                                  onClick={(e) =>
+                                    toggleClaimExpand(dispute.id, e)
+                                  }
+                                  className="text-[10px] font-semibold text-lime-800 hover:text-lime-950 bg-lime-100/90 hover:bg-lime-200/90 px-1.5 py-0.2 rounded transition-colors"
+                                >
+                                  {isClaimExpanded ? 'Show less' : 'Read more'}
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })()}
                         <span className="text-[10.5px] text-charcoal-400">
                           Due by {formatDate(dispute.due_date)}
                         </span>
@@ -255,6 +303,13 @@ export function DisputeTable({
           </tbody>
         </table>
       </div>
+
+      {/* Customer Claim Modal */}
+      <CustomerClaimModal
+        dispute={activeClaimDispute}
+        isOpen={Boolean(activeClaimDispute)}
+        onClose={() => setActiveClaimDispute(null)}
+      />
     </div>
   );
 }

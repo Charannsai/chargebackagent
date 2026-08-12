@@ -97,32 +97,34 @@ export default function Home() {
         {/* Quick Benchmark Cases Row */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 relative group">
+            <div className="flex items-center gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-charcoal-500">
                 Benchmark Test Cases
               </span>
 
-              <div className="relative inline-flex items-center">
+              <div className="relative inline-flex items-center group">
                 <button
                   type="button"
-                  className="p-1 rounded-full text-charcoal-400 hover:text-charcoal-900 hover:bg-charcoal-100 transition-colors cursor-help"
+                  className="p-1 rounded-full text-charcoal-400 hover:text-charcoal-900 hover:bg-charcoal-100 transition-colors cursor-pointer"
                   aria-label="Benchmark Information"
                 >
                   <Info className="w-3.5 h-3.5" />
                 </button>
 
-                {/* Hover Tooltip Popover */}
-                <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-40 w-72 sm:w-80 p-3.5 rounded-2xl bg-charcoal-950 text-white shadow-2xl border border-charcoal-800 text-xs space-y-2 animate-slide-up pointer-events-auto">
-                  <p className="text-charcoal-300 leading-relaxed text-[11.5px]">
-                    These benchmark test cases represent simulated chargeback scenarios filed by cardholders across diverse dispute reason codes (friendly fraud, account takeover, courier delays, and subscription billing) with synthetic gateway, carrier, and risk telemetry.
-                  </p>
-                  <Link
-                    href="/know-more"
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-lime-400 hover:text-lime-300 underline pt-1 transition-colors"
-                  >
-                    <span>To know more, visit architecture guide</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </Link>
+                {/* Hover Tooltip Popover with zero-gap hover bridge */}
+                <div className="absolute left-0 bottom-full pb-2 hidden group-hover:block z-40 w-72 sm:w-80 animate-slide-up pointer-events-auto">
+                  <div className="p-4 rounded-2xl bg-white text-charcoal-950 shadow-modal border border-charcoal-200 text-xs space-y-2.5">
+                    <p className="text-charcoal-600 leading-relaxed text-[11.5px]">
+                      These benchmark test cases represent simulated chargeback scenarios filed by cardholders across diverse dispute reason codes (friendly fraud, account takeover, courier delays, and subscription billing) with synthetic gateway, carrier, and risk telemetry.
+                    </p>
+                    <Link
+                      href="/know-more"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-charcoal-950 hover:text-lime-700 underline transition-colors pt-0.5"
+                    >
+                      <span>To know more, visit architecture guide</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-lime-600" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

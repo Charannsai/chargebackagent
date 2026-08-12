@@ -67,6 +67,7 @@ export function DisputeDetailView({
   const [showOverrideMenu, setShowOverrideMenu] = useState(false);
   const [overrideNotes, setOverrideNotes] = useState('');
   const [copiedRebuttal, setCopiedRebuttal] = useState(false);
+  const [isClaimExpanded, setIsClaimExpanded] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const traceEndRef = useRef<HTMLDivElement>(null);
@@ -329,9 +330,33 @@ export function DisputeDetailView({
           </div>
 
           {/* Stated Claim Inline Quote */}
-          <p className="text-xs text-charcoal-700 bg-charcoal-50 p-2.5 rounded-xl border border-charcoal-200 italic truncate max-w-2xl">
-            &quot;{dispute.customer_claim_statement || 'Buyer filed dispute claiming non-receipt / unauthorized charge.'}&quot;
-          </p>
+          <div
+            onClick={() => setIsClaimExpanded(!isClaimExpanded)}
+            className="group/claim bg-charcoal-50 hover:bg-lime-50/50 p-3 rounded-2xl border border-charcoal-200 hover:border-lime-200 transition-all cursor-pointer max-w-3xl"
+            title={isClaimExpanded ? 'Click to collapse' : 'Click to read full claim statement'}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <p
+                className={`text-xs leading-relaxed transition-all flex-1 ${
+                  isClaimExpanded
+                    ? 'not-italic font-normal text-charcoal-900'
+                    : 'italic text-charcoal-600 line-clamp-1 truncate'
+                }`}
+              >
+                &quot;{dispute.customer_claim_statement || 'Buyer filed dispute claiming non-receipt / unauthorized charge.'}&quot;
+              </p>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsClaimExpanded(!isClaimExpanded);
+                }}
+                className="text-[10px] font-semibold text-lime-800 bg-lime-100 hover:bg-lime-200 px-2 py-0.5 rounded-lg whitespace-nowrap flex-shrink-0 transition-colors"
+              >
+                {isClaimExpanded ? 'Show less' : 'Read more'}
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Right: Primary Run Button */}
