@@ -4,31 +4,26 @@ import React, { useState } from 'react';
 import { Dispute, DisputeStatus } from '@/lib/types';
 import { formatINR, formatDate } from '@/lib/utils';
 import {
-  Play,
-  History,
   Search,
   CheckCircle2,
   AlertTriangle,
   RotateCcw,
   Clock,
-  ArrowRight,
+  ChevronRight,
   CreditCard,
+  Building2,
 } from 'lucide-react';
 
 interface DisputeTableProps {
   disputes: Dispute[];
-  onInvestigate: (dispute: Dispute) => void;
-  onViewAudit: (dispute: Dispute) => void;
-  activeDisputeId?: string;
-  isInvestigating?: boolean;
+  onSelectDispute: (dispute: Dispute) => void;
+  selectedDisputeId?: string;
 }
 
 export function DisputeTable({
   disputes,
-  onInvestigate,
-  onViewAudit,
-  activeDisputeId,
-  isInvestigating,
+  onSelectDispute,
+  selectedDisputeId,
 }: DisputeTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
@@ -56,28 +51,28 @@ export function DisputeTable({
     switch (status) {
       case 'RESOLVED_REPRESENTED':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-lime-50 text-lime-800 border border-lime-200 shadow-sm">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-lime-50 text-lime-800 border border-lime-200 shadow-sm">
             <CheckCircle2 className="w-3.5 h-3.5 text-lime-600" />
-            Represented (Won)
+            Represented
           </span>
         );
       case 'RESOLVED_REFUNDED':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-800 border border-rose-200">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">
             <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
             Refund Accepted
           </span>
         );
       case 'ESCALATED':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
             <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
             Escalated to Ops
           </span>
         );
       case 'UNDER_INVESTIGATION':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-charcoal-100 text-charcoal-800 border border-charcoal-300">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-charcoal-100 text-charcoal-800 border border-charcoal-300">
             <span className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-ping"></span>
             Investigating...
           </span>
@@ -85,7 +80,7 @@ export function DisputeTable({
       case 'PENDING':
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-charcoal-100 text-charcoal-700 border border-charcoal-200">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-charcoal-100 text-charcoal-700 border border-charcoal-200">
             <Clock className="w-3.5 h-3.5 text-charcoal-500" />
             Pending Action
           </span>
@@ -96,25 +91,25 @@ export function DisputeTable({
   const getReasonLabel = (reason: string) => {
     switch (reason) {
       case 'PRODUCT_NOT_RECEIVED':
-        return { label: 'Product Not Received', color: 'text-amber-700 bg-amber-50 border-amber-200' };
+        return { label: 'Product Not Received', color: 'text-amber-800 bg-amber-50 border-amber-200' };
       case 'FRAUDULENT_TRANSACTION':
-        return { label: 'Fraud / Unauthorized', color: 'text-rose-700 bg-rose-50 border-rose-200' };
+        return { label: 'Fraud / Unauthorized', color: 'text-rose-800 bg-rose-50 border-rose-200' };
       case 'SUBSCRIPTION_UNRECOGNIZED':
-        return { label: 'Subscription Unrecognized', color: 'text-blue-700 bg-blue-50 border-blue-200' };
+        return { label: 'Subscription Unrecognized', color: 'text-blue-800 bg-blue-50 border-blue-200' };
       default:
-        return { label: reason.replace(/_/g, ' '), color: 'text-charcoal-700 bg-charcoal-50 border-charcoal-200' };
+        return { label: reason.replace(/_/g, ' '), color: 'text-charcoal-800 bg-charcoal-50 border-charcoal-200' };
     }
   };
 
   return (
-    <div className="bg-white rounded-xl border border-charcoal-200 shadow-subtle overflow-hidden">
-      {/* Table Header & Controls */}
+    <div className="bg-white rounded-2xl border border-charcoal-200 shadow-subtle overflow-hidden">
+      {/* Table Header Controls */}
       <div className="p-4 sm:p-5 border-b border-charcoal-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         {/* Filter Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
           {[
             { key: 'ALL', label: 'All Disputes' },
-            { key: 'PENDING', label: 'Pending Review' },
+            { key: 'PENDING', label: 'Pending Action' },
             { key: 'REPRESENTED', label: 'Represented' },
             { key: 'REFUNDED', label: 'Refunded' },
             { key: 'ESCALATED', label: 'Escalated' },
@@ -122,7 +117,7 @@ export function DisputeTable({
             <button
               key={tab.key}
               onClick={() => setSelectedFilter(tab.key)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-xl transition-all whitespace-nowrap ${
                 selectedFilter === tab.key
                   ? 'bg-charcoal-950 text-white shadow-sm'
                   : 'text-charcoal-600 hover:text-charcoal-950 hover:bg-charcoal-50'
@@ -135,63 +130,58 @@ export function DisputeTable({
 
         {/* Search Input */}
         <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-charcoal-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-charcoal-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search disputes, transactions..."
+            placeholder="Search dispute ID, customer, merchant..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-charcoal-50 border border-charcoal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400/50 focus:bg-white text-charcoal-950 placeholder-charcoal-400 transition-all"
+            className="w-full pl-9 pr-3 py-1.5 text-xs bg-charcoal-50 border border-charcoal-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-lime-400/50 focus:bg-white text-charcoal-950 placeholder-charcoal-400 transition-all"
           />
         </div>
       </div>
 
-      {/* Disputes Table */}
+      {/* Clean Disputes Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-charcoal-50/60 border-b border-charcoal-200 text-[11px] font-medium uppercase tracking-wider text-charcoal-500">
-              <th className="py-3 px-4 sm:px-6">Dispute & Reason</th>
+            <tr className="bg-charcoal-50/60 border-b border-charcoal-200 text-[11px] font-semibold uppercase tracking-wider text-charcoal-500">
+              <th className="py-3 px-6">Dispute & Reason</th>
               <th className="py-3 px-4">Merchant & Customer</th>
-              <th className="py-3 px-4">Disputed Amount</th>
-              <th className="py-3 px-4">Status & Resolution</th>
-              <th className="py-3 px-4 sm:px-6 text-right">Actions</th>
+              <th className="py-3 px-4">Amount</th>
+              <th className="py-3 px-4">Status</th>
+              <th className="py-3 px-6 text-right">Details</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-charcoal-100 text-xs text-charcoal-800">
             {filteredDisputes.length === 0 ? (
               <tr>
                 <td colSpan={5} className="py-12 text-center text-charcoal-400 text-sm">
-                  No disputes match the selected criteria.
+                  No disputes found matching the selected filter.
                 </td>
               </tr>
             ) : (
               filteredDisputes.map((dispute) => {
                 const reasonInfo = getReasonLabel(dispute.reason);
-                const isCurrentActive = activeDisputeId === dispute.id && isInvestigating;
-                const hasRun = Boolean(dispute.latest_run_id || dispute.status !== 'PENDING');
+                const isSelected = selectedDisputeId === dispute.id;
 
                 return (
                   <tr
                     key={dispute.id}
-                    className={`hover:bg-charcoal-50/70 transition-colors ${
-                      isCurrentActive ? 'bg-lime-50/40' : ''
+                    onClick={() => onSelectDispute(dispute)}
+                    className={`cursor-pointer hover:bg-charcoal-50/80 transition-colors group ${
+                      isSelected ? 'bg-lime-50/40' : ''
                     }`}
                   >
                     {/* Column 1: Dispute ID & Reason */}
-                    <td className="py-4 px-4 sm:px-6">
+                    <td className="py-4 px-6">
                       <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-medium text-charcoal-950 text-xs">
-                            {dispute.id}
-                          </span>
-                          <span className="text-[11px] text-charcoal-400 font-mono">
-                            ARN: ...{dispute.arn.slice(-6)}
-                          </span>
-                        </div>
+                        <span className="font-mono font-semibold text-charcoal-950 text-xs group-hover:text-lime-700 transition-colors">
+                          {dispute.id}
+                        </span>
                         <div>
                           <span
-                            className={`inline-block px-2 py-0.5 rounded text-[11px] font-medium border ${reasonInfo.color}`}
+                            className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-medium border ${reasonInfo.color}`}
                           >
                             {reasonInfo.label}
                           </span>
@@ -220,7 +210,7 @@ export function DisputeTable({
                     {/* Column 3: Amount */}
                     <td className="py-4 px-4">
                       <div className="flex flex-col">
-                        <span className="font-semibold text-charcoal-950 text-sm">
+                        <span className="font-bold text-charcoal-950 text-sm font-mono">
                           {formatINR(dispute.amount)}
                         </span>
                         <div className="flex items-center gap-1 text-[11px] text-charcoal-500">
@@ -234,46 +224,14 @@ export function DisputeTable({
                     <td className="py-4 px-4">
                       <div className="flex flex-col gap-1 items-start">
                         {getStatusBadge(dispute.status)}
-                        {dispute.notes && (
-                          <span className="text-[11px] text-charcoal-400 italic truncate max-w-[200px]">
-                            {dispute.notes}
-                          </span>
-                        )}
                       </div>
                     </td>
 
-                    {/* Column 5: Actions */}
-                    <td className="py-4 px-4 sm:px-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* Audit Trail Button */}
-                        {hasRun && (
-                          <button
-                            onClick={() => onViewAudit(dispute)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-charcoal-600 hover:text-charcoal-950 bg-charcoal-50 hover:bg-charcoal-100 border border-charcoal-200 transition-colors"
-                            title="View immutable decision trace & tool audit log"
-                          >
-                            <History className="w-3.5 h-3.5 text-charcoal-500" />
-                            <span className="hidden lg:inline">Audit Trail</span>
-                          </button>
-                        )}
-
-                        {/* Run AI Resolver CTA */}
-                        <button
-                          onClick={() => onInvestigate(dispute)}
-                          disabled={isCurrentActive}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all shadow-subtle ${
-                            isCurrentActive
-                              ? 'bg-lime-500 text-white cursor-not-allowed animate-pulse'
-                              : 'bg-charcoal-950 hover:bg-charcoal-800 text-white hover:ring-2 hover:ring-lime-400/40'
-                          }`}
-                        >
-                          <Play className="w-3.5 h-3.5 text-lime-400 fill-lime-400" />
-                          <span>
-                            {dispute.status === 'PENDING'
-                              ? 'Run AI Resolver'
-                              : 'Re-investigate'}
-                          </span>
-                        </button>
+                    {/* Column 5: View Details Indicator */}
+                    <td className="py-4 px-6 text-right">
+                      <div className="inline-flex items-center gap-1 text-xs font-medium text-charcoal-500 group-hover:text-charcoal-950 transition-colors">
+                        <span>Open</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-charcoal-400 group-hover:text-charcoal-950 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </td>
                   </tr>

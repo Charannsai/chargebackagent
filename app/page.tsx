@@ -5,22 +5,22 @@ import { Dispute } from '@/lib/types';
 import { Header } from '@/components/Header';
 import { MetricsBar } from '@/components/MetricsBar';
 import { DisputeTable } from '@/components/DisputeTable';
-import { AgentTraceDrawer } from '@/components/AgentTraceDrawer';
+import { DisputeDetailView } from '@/components/DisputeDetailView';
 import { AuditTrailModal } from '@/components/AuditTrailModal';
 import { CreateDisputeModal } from '@/components/CreateDisputeModal';
-import { ShieldCheck, Play, ArrowUpRight, Cpu, Sparkles, CheckCircle2, AlertTriangle, RotateCcw } from 'lucide-react';
+import { ArrowUpRight, Sparkles, ShieldCheck } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
 
 export default function Home() {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [engineMode, setEngineMode] = useState<'groq' | 'demo'>('groq');
   const [isGroqConfigured, setIsGroqConfigured] = useState(false);
-  const [selectedDisputeForTrace, setSelectedDisputeForTrace] = useState<Dispute | null>(null);
-  const [selectedDisputeForAudit, setSelectedDisputeForAudit] = useState<Dispute | null>(null);
+  const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
+  const [auditDispute, setAuditDispute] = useState<Dispute | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
-  // Check health and fetch initial disputes
+  // Initial load & health
   useEffect(() => {
     fetchHealth();
     fetchDisputes();
@@ -32,7 +32,6 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json();
         setIsGroqConfigured(data.groq_configured);
-        // If Groq is not configured on server, default gracefully to demo mode
         if (!data.groq_configured) {
           setEngineMode('demo');
         }
@@ -48,6 +47,11 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json();
         setDisputes(data.disputes || []);
+        // Refresh active selected dispute if open
+        if (selectedDispute) {
+          const updated = (data.disputes || []).find((d: Dispute) => d.id === selectedDispute.id);
+          if (updated) setSelectedDispute(updated);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch disputes:', err);
@@ -64,17 +68,18 @@ export default function Home() {
       });
       if (res.ok) {
         await fetchDisputes();
+        setSelectedDispute(null);
       }
     } catch (err) {
-      console.error('Failed to reset:', err);
+      console.error('Failed to reset data:', err);
     } finally {
       setIsResetting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] flex flex-col font-sans">
-      {/* Top App Header */}
+    <div className="min-h-screen bg-[#FAFAFA] flex flex-col font-sans selection:bg-lime-200 selection:text-lime-950">
+      {/* Top Navigation */}
       <Header
         engineMode={engineMode}
         setEngineMode={setEngineMode}
@@ -85,42 +90,42 @@ export default function Home() {
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Hero & Quick Scenario Launcher Banner */}
-        <div className="bg-white rounded-2xl p-6 border border-charcoal-200 shadow-subtle relative overflow-hidden">
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="max-w-2xl space-y-2">
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-semibold bg-charcoal-950 text-white shadow-sm">
+        {/* ==================================================== */}
+        {/* HERO SECTION: Calm, Minimalist Overview & Benchmarks */}
+        {/* ==================================================== */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-charcoal-200 shadow-subtle relative overflow-hidden">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="max-w-2xl space-y-2.5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-charcoal-950 text-white shadow-sm">
                 <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse"></span>
-                <span>FINTECH OPERATIONS BENCHMARK</span>
+                <span>AUTONOMOUS RISK SPECIALIST</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold text-charcoal-950 tracking-tight">
-                Autonomous Dispute Operations Agent
+                Razorpay Agentic Chargeback Resolver
               </h2>
               <p className="text-xs sm:text-sm text-charcoal-600 leading-relaxed">
-                Replaces high-cost manual chargeback review with autonomous tool-calling agents. 
-                Gathers gateway telemetry, verifies courier delivery signatures, calculates behavioral risk, 
-                and compiles structured representment dossiers with transparent decision traces.
+                Autonomous risk-and-operations AI agent that investigates payment disputes. Select any dispute to inspect gateway authorization, courier telemetry signatures, customer risk flags, and run autonomous representment investigations.
               </p>
             </div>
 
-            {/* Quick Engine Status Card */}
-            <div className="bg-charcoal-50 p-4 rounded-xl border border-charcoal-200/80 flex flex-col gap-2 min-w-[240px]">
+            {/* Active AI Status Pill */}
+            <div className="bg-charcoal-50 p-4 rounded-2xl border border-charcoal-200/80 flex flex-col gap-1.5 min-w-[240px]">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500">
-                Active AI Architecture
+                Active Intelligence
               </span>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-lime-500 shadow-lime-glow-sm"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-lime-500 shadow-lime-glow-sm"></div>
                 <span className="text-xs font-bold text-charcoal-900">
-                  {engineMode === 'groq' ? 'Groq / Llama 3.3 70B' : 'Deterministic Operations Engine'}
+                  {engineMode === 'groq' ? 'Groq / Llama 3.3 70B' : 'Deterministic Operations Simulator'}
                 </span>
               </div>
               <p className="text-[11px] text-charcoal-500">
-                Autonomous Tool Loop • Full Auditability
+                Autonomous Dynamic Tool Loop
               </p>
             </div>
           </div>
 
-          {/* Quick Case Study Cards Row */}
+          {/* Quick Scenario Showcase Cards */}
           <div className="mt-6 pt-5 border-t border-charcoal-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {disputes.slice(0, 4).map((caseItem, idx) => {
               const caseLabel =
@@ -144,8 +149,8 @@ export default function Home() {
               return (
                 <div
                   key={caseItem.id}
-                  onClick={() => setSelectedDisputeForTrace(caseItem)}
-                  className="group p-3 rounded-xl bg-charcoal-50/70 hover:bg-lime-50/50 border border-charcoal-200 hover:border-lime-300 transition-all cursor-pointer shadow-subtle flex flex-col justify-between"
+                  onClick={() => setSelectedDispute(caseItem)}
+                  className="group p-3.5 rounded-2xl bg-charcoal-50/70 hover:bg-lime-50/50 border border-charcoal-200 hover:border-lime-300 transition-all cursor-pointer shadow-subtle flex flex-col justify-between"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-[11px]">
@@ -160,7 +165,7 @@ export default function Home() {
                   </div>
 
                   <div className="mt-3 pt-2 border-t border-charcoal-200/60 flex items-center justify-between text-[11px]">
-                    <span className="font-semibold font-mono text-charcoal-950">
+                    <span className="font-bold font-mono text-charcoal-950">
                       {formatINR(caseItem.amount)}
                     </span>
                     <span className="text-charcoal-500 font-medium">
@@ -173,10 +178,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* High Level KPI Metrics */}
+        {/* High-Level KPI Metrics Bar */}
         <MetricsBar disputes={disputes} />
 
-        {/* Dispute Queue Table */}
+        {/* Dispute Operations Queue Table */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -184,16 +189,15 @@ export default function Home() {
                 Dispute Operations Queue
               </h3>
               <p className="text-xs text-charcoal-500">
-                Incoming bank disputes requiring investigation, evidence compilation, or representment.
+                Click any dispute row to open full transaction facts, courier telemetry, and run the AI Resolver.
               </p>
             </div>
           </div>
 
           <DisputeTable
             disputes={disputes}
-            onInvestigate={(dispute) => setSelectedDisputeForTrace(dispute)}
-            onViewAudit={(dispute) => setSelectedDisputeForAudit(dispute)}
-            activeDisputeId={selectedDisputeForTrace?.id}
+            onSelectDispute={(dispute) => setSelectedDispute(dispute)}
+            selectedDisputeId={selectedDispute?.id}
           />
         </div>
       </main>
@@ -213,28 +217,29 @@ export default function Home() {
             <span>•</span>
             <span>Autonomous State Machine</span>
             <span>•</span>
-            <span>Inter Typography</span>
+            <span>Inter & JetBrains Mono</span>
           </div>
         </div>
       </footer>
 
-      {/* Flagship Live Execution Console & Workshop Drawer */}
-      <AgentTraceDrawer
-        dispute={selectedDisputeForTrace}
-        isOpen={Boolean(selectedDisputeForTrace)}
-        onClose={() => setSelectedDisputeForTrace(null)}
+      {/* Flagship Dispute Detail View Drawer */}
+      <DisputeDetailView
+        dispute={selectedDispute}
+        isOpen={Boolean(selectedDispute)}
+        onClose={() => setSelectedDispute(null)}
         engineMode={engineMode}
         onRunComplete={fetchDisputes}
+        onViewAudit={(d) => setAuditDispute(d)}
       />
 
-      {/* Dedicated Operational Audit Trail Modal */}
+      {/* Immutable Operational Audit Trail Modal */}
       <AuditTrailModal
-        dispute={selectedDisputeForAudit}
-        isOpen={Boolean(selectedDisputeForAudit)}
-        onClose={() => setSelectedDisputeForAudit(null)}
+        dispute={auditDispute}
+        isOpen={Boolean(auditDispute)}
+        onClose={() => setAuditDispute(null)}
       />
 
-      {/* Inbound Webhook Simulator Modal */}
+      {/* Inbound Dispute Webhook Simulator Modal */}
       <CreateDisputeModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
