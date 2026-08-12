@@ -9,7 +9,7 @@ import {
   AgentStep,
   AgentVerdict,
 } from '@/lib/types';
-import { formatINR, formatDate, formatDateTime } from '@/lib/utils';
+import { formatINR, formatDate } from '@/lib/utils';
 import { JsonViewer } from './JsonViewer';
 import {
   ArrowLeft,
@@ -30,8 +30,9 @@ import {
   HelpCircle,
   History,
   SlidersHorizontal,
-  ArrowRight,
-  Eye,
+  Copy,
+  ChevronDown,
+  Layers,
 } from 'lucide-react';
 
 interface DisputeDetailViewProps {
@@ -60,12 +61,13 @@ export function DisputeDetailView({
   const [steps, setSteps] = useState<AgentStep[]>([]);
   const [currentRun, setCurrentRun] = useState<AgentRun | null>(null);
   const [rebuttalText, setRebuttalText] = useState('');
-  const [showCaseFactsModal, setShowCaseFactsModal] = useState(false);
+  const [showCaseFacts, setShowCaseFacts] = useState(false);
   const [operatorGuidance, setOperatorGuidance] = useState('');
   const [showGuidanceInput, setShowGuidanceInput] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [showOverrideMenu, setShowOverrideMenu] = useState(false);
   const [overrideNotes, setOverrideNotes] = useState('');
+  const [copiedRebuttal, setCopiedRebuttal] = useState(false);
 
   const traceEndRef = useRef<HTMLDivElement>(null);
 
@@ -207,204 +209,202 @@ export function DisputeDetailView({
     }
   };
 
+  const copyRebuttalToClipboard = () => {
+    navigator.clipboard.writeText(rebuttalText);
+    setCopiedRebuttal(true);
+    setTimeout(() => setCopiedRebuttal(false), 2000);
+  };
+
   const effectiveVerdict = currentRun?.human_override_verdict || currentRun?.final_verdict;
   const isApproved = currentRun?.human_action === 'APPROVED';
   const isOverridden = currentRun?.human_action === 'OVERRIDDEN';
 
+  const getReasonLabel = (reason: string) => {
+    switch (reason) {
+      case 'PRODUCT_NOT_RECEIVED':
+        return { label: 'Product Not Received', color: 'text-amber-800 bg-amber-50 border-amber-200' };
+      case 'FRAUDULENT_TRANSACTION':
+        return { label: 'Fraud / Unauthorized', color: 'text-rose-800 bg-rose-50 border-rose-200' };
+      case 'SUBSCRIPTION_UNRECOGNIZED':
+        return { label: 'Subscription Unrecognized', color: 'text-blue-800 bg-blue-50 border-blue-200' };
+      default:
+        return { label: reason.replace(/_/g, ' '), color: 'text-charcoal-800 bg-charcoal-50 border-charcoal-200' };
+    }
+  };
+
+  const reasonInfo = getReasonLabel(dispute.reason);
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="max-w-6xl mx-auto space-y-6 animate-fade-in pb-12">
       {/* ==================================================== */}
-      {/* TOP NAVIGATION: Back to Disputes Bar                */}
+      {/* 1. TOP NAVIGATION BAR                                */}
       {/* ==================================================== */}
       <div className="flex items-center justify-between">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-charcoal-700 hover:text-charcoal-950 bg-white hover:bg-charcoal-100 border border-charcoal-200 transition-all shadow-subtle group"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-charcoal-700 hover:text-charcoal-950 bg-white hover:bg-charcoal-50 border border-charcoal-200 transition-all shadow-subtle group"
         >
           <ArrowLeft className="w-4 h-4 text-charcoal-400 group-hover:text-charcoal-950 group-hover:-translate-x-0.5 transition-transform" />
-          <span>Back to Dispute Queue</span>
+          <span>Back to Disputes</span>
         </button>
 
         <div className="flex items-center gap-2">
           {hasStartedInvestigation && (
             <button
-              onClick={() => setShowCaseFactsModal(!showCaseFactsModal)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium text-charcoal-700 bg-white hover:bg-charcoal-50 border border-charcoal-200 transition-colors shadow-subtle"
+              onClick={() => setShowCaseFacts(!showCaseFacts)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-charcoal-600 hover:text-charcoal-950 bg-white border border-charcoal-200 hover:border-charcoal-300 transition-colors shadow-subtle"
             >
-              <Eye className="w-3.5 h-3.5 text-charcoal-500" />
-              <span>{showCaseFactsModal ? 'Hide Raw Case Facts' : 'View Raw Case Facts'}</span>
+              <Layers className="w-3.5 h-3.5 text-charcoal-400" />
+              <span>{showCaseFacts ? 'Hide Raw Facts' : 'View Raw Facts'}</span>
             </button>
           )}
 
           {currentRun && (
             <button
               onClick={() => onViewAudit(dispute)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium text-charcoal-700 bg-white hover:bg-charcoal-50 border border-charcoal-200 transition-colors shadow-subtle"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-charcoal-600 hover:text-charcoal-950 bg-white border border-charcoal-200 hover:border-charcoal-300 transition-colors shadow-subtle"
             >
-              <History className="w-3.5 h-3.5 text-charcoal-500" />
-              <span>Audit Trail</span>
+              <History className="w-3.5 h-3.5 text-charcoal-400" />
+              <span>Audit Log</span>
             </button>
           )}
         </div>
       </div>
 
       {/* ==================================================== */}
-      {/* FULL-WIDTH HERO: Dispute Context & Primary Actions  */}
+      {/* 2. CRISP HERO BANNER: Amount, Identity & Primary CTA */}
       {/* ==================================================== */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-charcoal-200 shadow-subtle flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-3">
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-charcoal-200 shadow-subtle flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-2.5">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="font-mono font-bold text-charcoal-950 text-base">
+            <span className="font-mono font-bold text-charcoal-950 text-sm">
               {dispute.id}
             </span>
-            <span className="text-xs px-3 py-1 rounded-full font-medium bg-charcoal-100 text-charcoal-700">
-              {dispute.reason.replace(/_/g, ' ')}
+            <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold border ${reasonInfo.color}`}>
+              {reasonInfo.label}
             </span>
             {dispute.status === 'RESOLVED_REPRESENTED' && (
-              <span className="text-xs px-3 py-1 rounded-full font-semibold bg-lime-100 text-lime-800 border border-lime-300">
-                Represented (Won)
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-lime-50 text-lime-800 border border-lime-200">
+                Represented
               </span>
             )}
             {dispute.status === 'RESOLVED_REFUNDED' && (
-              <span className="text-xs px-3 py-1 rounded-full font-semibold bg-rose-100 text-rose-800 border border-rose-200">
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-rose-50 text-rose-800 border border-rose-200">
                 Refund Accepted
               </span>
             )}
             {dispute.status === 'ESCALATED' && (
-              <span className="text-xs px-3 py-1 rounded-full font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-800 border border-amber-200">
                 Escalated to Ops
               </span>
             )}
           </div>
 
-          <div className="flex flex-wrap items-baseline gap-6 pt-1">
-            <div>
-              <span className="text-[11px] font-medium uppercase tracking-wider text-charcoal-500 block">
-                Disputed Amount
-              </span>
-              <span className="text-3xl sm:text-4xl font-extrabold text-charcoal-950 font-mono tracking-tight">
-                {formatINR(dispute.amount)}
-              </span>
-            </div>
-
-            <div className="h-10 w-px bg-charcoal-200 hidden sm:block"></div>
-
-            <div className="space-y-1 text-xs text-charcoal-600">
-              <p>
-                <span className="text-charcoal-400">Merchant:</span> <strong>{dispute.merchant_name}</strong>
-              </p>
-              <p>
-                <span className="text-charcoal-400">Cardholder:</span> {dispute.customer_name} ({dispute.customer_email})
-              </p>
-              <p>
-                <span className="text-charcoal-400">Network / Deadline:</span> {dispute.network} • Due by {formatDate(dispute.due_date)}
-              </p>
+          <div className="flex flex-wrap items-baseline gap-5">
+            <span className="text-3xl sm:text-4xl font-extrabold text-charcoal-950 font-mono tracking-tight">
+              {formatINR(dispute.amount)}
+            </span>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-charcoal-500">
+              <span>Merchant: <strong className="text-charcoal-800">{dispute.merchant_name}</strong></span>
+              <span>•</span>
+              <span>Buyer: <strong className="text-charcoal-800">{dispute.customer_name}</strong></span>
+              <span>•</span>
+              <span>Network: <strong className="text-charcoal-800">{dispute.network}</strong></span>
+              <span>•</span>
+              <span>Due: <strong className="text-charcoal-800">{formatDate(dispute.due_date)}</strong></span>
             </div>
           </div>
         </div>
 
-        {/* Primary Action Button */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <button
-            onClick={() => handleStartInvestigation()}
-            disabled={isRunning}
-            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl text-xs font-bold transition-all shadow-subtle ${
-              isRunning
-                ? 'bg-lime-500 text-white cursor-not-allowed animate-pulse ring-2 ring-lime-400/50'
-                : 'bg-charcoal-950 hover:bg-charcoal-800 text-white hover:ring-2 hover:ring-lime-400/40'
-            }`}
-          >
-            <Play className={`w-4 h-4 ${isRunning ? 'animate-spin' : 'text-lime-400 fill-lime-400'}`} />
-            <span>
-              {isRunning
-                ? 'Agent Investigating Live...'
-                : hasStartedInvestigation
-                ? 'Re-Run AI Resolver'
-                : 'Resolve with AI Agent'}
-            </span>
-          </button>
-        </div>
+        {/* Primary CTA Button */}
+        <button
+          onClick={() => handleStartInvestigation()}
+          disabled={isRunning}
+          className={`flex-shrink-0 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-xs font-bold transition-all shadow-subtle ${
+            isRunning
+              ? 'bg-lime-500 text-white cursor-not-allowed animate-pulse ring-2 ring-lime-400/50'
+              : 'bg-charcoal-950 hover:bg-charcoal-800 text-white hover:ring-2 hover:ring-lime-400/40 hover:scale-[1.01]'
+          }`}
+        >
+          <Play className={`w-4 h-4 ${isRunning ? 'animate-spin' : 'text-lime-400 fill-lime-400'}`} />
+          <span>
+            {isRunning
+              ? 'Agent Investigating Live...'
+              : hasStartedInvestigation
+              ? 'Re-Run AI Resolver'
+              : 'Start AI Resolution'}
+          </span>
+        </button>
       </div>
 
       {/* ==================================================== */}
-      {/* CLEAR DISPUTE STORY: Customer Claim vs Merchant Stance */}
+      {/* 3. CASE CONTEXT: Customer Claim vs Merchant Stance   */}
       {/* ==================================================== */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Customer's Claim */}
-        <div className="bg-white p-6 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2.5">
+        {/* Customer's Claim Card */}
+        <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-rose-50 text-rose-700 flex items-center justify-center font-bold text-xs border border-rose-200">
+            <span className="w-5 h-5 rounded-full bg-rose-50 text-rose-700 font-bold text-xs flex items-center justify-center border border-rose-200">
               !
-            </div>
-            <span className="text-xs font-bold text-charcoal-900 uppercase tracking-wider">
-              Cardholder's Stated Dispute Issue
+            </span>
+            <span className="text-[11px] font-bold text-charcoal-700 uppercase tracking-wider">
+              Cardholder's Stated Issue (Bank Claim)
             </span>
           </div>
-          <p className="text-xs text-charcoal-800 bg-rose-50/40 p-4 rounded-2xl border border-rose-100/80 italic leading-relaxed">
-            "{dispute.customer_claim_statement || 'Customer filed a formal chargeback with their bank claiming non-delivery or unauthorized transaction.'}"
+          <p className="text-xs text-charcoal-800 bg-rose-50/30 p-3.5 rounded-2xl border border-rose-100 italic leading-relaxed">
+            "{dispute.customer_claim_statement || 'Customer filed a chargeback with their bank claiming non-receipt or unauthorized transaction.'}"
           </p>
         </div>
 
-        {/* Merchant's Stance & Evidence Baseline */}
-        <div className="bg-white p-6 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2.5">
+        {/* Merchant Fulfillment Card */}
+        <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-charcoal-100 text-charcoal-700 flex items-center justify-center font-bold text-xs border border-charcoal-200">
+            <span className="w-5 h-5 rounded-full bg-charcoal-100 text-charcoal-700 font-bold text-xs flex items-center justify-center border border-charcoal-200">
               i
-            </div>
-            <span className="text-xs font-bold text-charcoal-900 uppercase tracking-wider">
-              Merchant Fulfillment & Baseline
+            </span>
+            <span className="text-[11px] font-bold text-charcoal-700 uppercase tracking-wider">
+              Merchant Order & Fulfillment Record
             </span>
           </div>
-          <p className="text-xs text-charcoal-800 bg-charcoal-50 p-4 rounded-2xl border border-charcoal-200/80 leading-relaxed">
-            {dispute.merchant_fulfillment_note || 'Order was processed via Razorpay gateway and dispatched via courier partner.'}
+          <p className="text-xs text-charcoal-800 bg-charcoal-50 p-3.5 rounded-2xl border border-charcoal-200 leading-relaxed">
+            {dispute.merchant_fulfillment_note || 'Order processed through Razorpay payment gateway and dispatched to courier.'}
           </p>
         </div>
       </div>
 
       {/* ==================================================== */}
-      {/* STAGE 1: BEFORE RUNNING AI (Clean Case File Overview) */}
+      {/* 4. BEFORE AI RESOLUTION: Case Facts & Ready Banner   */}
       {/* ==================================================== */}
-      {(!hasStartedInvestigation || showCaseFactsModal) && (
-        <div className="space-y-6 animate-fade-in">
+      {(!hasStartedInvestigation || showCaseFacts) && (
+        <div className="space-y-4 animate-fade-in">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-charcoal-900 uppercase tracking-wider">
-              Case Evidence & Raw Data Files
-            </h3>
-            {!hasStartedInvestigation && (
-              <span className="text-xs text-charcoal-500">
-                Click <strong>"Resolve with AI Agent"</strong> to autonomously analyze this case
-              </span>
-            )}
+            <span className="text-xs font-bold uppercase tracking-wider text-charcoal-500">
+              Raw Evidence Baseline & Telemetry
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-            {/* 1. Transaction Telemetry */}
-            <div className="bg-white p-6 rounded-3xl border border-charcoal-200 shadow-subtle space-y-3.5">
-              <div className="flex items-center gap-2 border-b border-charcoal-100 pb-3">
-                <CreditCard className="w-4 h-4 text-charcoal-600" />
-                <h4 className="font-bold text-charcoal-900 text-sm">
-                  Gateway Payment
-                </h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            {/* Payment Facts */}
+            <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2.5">
+              <div className="flex items-center gap-2 border-b border-charcoal-100 pb-2.5">
+                <CreditCard className="w-4 h-4 text-charcoal-500" />
+                <h4 className="font-bold text-charcoal-900">Gateway Payment</h4>
               </div>
               {transaction ? (
-                <div className="space-y-2">
+                <div className="space-y-1.5 text-[11.5px]">
                   <div className="flex justify-between">
                     <span className="text-charcoal-500">Transaction ID</span>
-                    <span className="font-mono text-charcoal-900 font-medium">{transaction.id}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-charcoal-500">Gateway Ref</span>
-                    <span className="font-mono text-charcoal-900">{transaction.gateway_reference}</span>
+                    <span className="font-mono text-charcoal-900">{transaction.id}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-charcoal-500">3DS Auth</span>
-                    <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${transaction.three_ds_status === 'AUTHENTICATED' ? 'bg-lime-50 text-lime-800 border border-lime-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
+                    <span className={`font-bold ${transaction.three_ds_status === 'AUTHENTICATED' ? 'text-lime-700' : 'text-rose-600'}`}>
                       {transaction.three_ds_status}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">IP Location</span>
-                    <span className="font-mono text-charcoal-900">{transaction.ip_country}</span>
+                    <span className="text-charcoal-500">IP Origin</span>
+                    <span className="font-mono text-charcoal-800">{transaction.ip_country}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-charcoal-500">Proxy/VPN</span>
@@ -414,128 +414,80 @@ export function DisputeDetailView({
                   </div>
                 </div>
               ) : (
-                <div className="py-6 text-center text-charcoal-400">Loading payment facts...</div>
+                <div className="py-4 text-center text-charcoal-400">Loading payment facts...</div>
               )}
             </div>
 
-            {/* 2. Courier Telemetry */}
-            <div className="bg-white p-6 rounded-3xl border border-charcoal-200 shadow-subtle space-y-3.5">
-              <div className="flex items-center gap-2 border-b border-charcoal-100 pb-3">
-                <Truck className="w-4 h-4 text-charcoal-600" />
-                <h4 className="font-bold text-charcoal-900 text-sm">
-                  Courier Logistics
-                </h4>
+            {/* Courier Facts */}
+            <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2.5">
+              <div className="flex items-center gap-2 border-b border-charcoal-100 pb-2.5">
+                <Truck className="w-4 h-4 text-charcoal-500" />
+                <h4 className="font-bold text-charcoal-900">Courier Logistics</h4>
               </div>
               {transaction ? (
-                <div className="space-y-2">
+                <div className="space-y-1.5 text-[11.5px]">
                   <div className="flex justify-between">
                     <span className="text-charcoal-500">Carrier Partner</span>
                     <span className="font-medium text-charcoal-900">{transaction.shipping_carrier || 'Not assigned'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">Tracking AWB</span>
-                    <span className="font-mono font-medium text-charcoal-900">{transaction.shipping_tracking_no || 'N/A'}</span>
+                    <span className="text-charcoal-500">AWB Tracking</span>
+                    <span className="font-mono text-charcoal-900">{transaction.shipping_tracking_no || 'N/A'}</span>
                   </div>
-                  <div className="pt-1">
-                    <span className="text-charcoal-500 block mb-0.5">Item Description:</span>
-                    <span className="text-charcoal-900 font-medium">{transaction.item_description}</span>
-                  </div>
-                  <div className="pt-1">
-                    <span className="text-charcoal-500 block mb-0.5">Destination:</span>
-                    <span className="text-charcoal-700 truncate block">{transaction.shipping_address}</span>
+                  <div className="flex justify-between">
+                    <span className="text-charcoal-500">Item</span>
+                    <span className="text-charcoal-800 font-medium truncate max-w-[140px]">{transaction.item_description}</span>
                   </div>
                 </div>
               ) : (
-                <div className="py-6 text-center text-charcoal-400">Loading courier facts...</div>
+                <div className="py-4 text-center text-charcoal-400">Loading courier facts...</div>
               )}
             </div>
 
-            {/* 3. Customer Profile */}
-            <div className="bg-white p-6 rounded-3xl border border-charcoal-200 shadow-subtle space-y-3.5">
-              <div className="flex items-center gap-2 border-b border-charcoal-100 pb-3">
-                <User className="w-4 h-4 text-charcoal-600" />
-                <h4 className="font-bold text-charcoal-900 text-sm">
-                  Customer Profile
-                </h4>
+            {/* Customer Facts */}
+            <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2.5">
+              <div className="flex items-center gap-2 border-b border-charcoal-100 pb-2.5">
+                <User className="w-4 h-4 text-charcoal-500" />
+                <h4 className="font-bold text-charcoal-900">Customer Risk</h4>
               </div>
               {userProfile ? (
-                <div className="space-y-2">
+                <div className="space-y-1.5 text-[11.5px]">
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">Customer Name</span>
+                    <span className="text-charcoal-500">Customer</span>
                     <span className="font-medium text-charcoal-900">{userProfile.full_name}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">Lifetime Orders</span>
-                    <span className="font-medium text-charcoal-900">{userProfile.total_orders_count} orders</span>
+                    <span className="text-charcoal-500">Orders</span>
+                    <span className="text-charcoal-900">{userProfile.total_orders_count} lifetime</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">Chargeback History</span>
+                    <span className="text-charcoal-500">Prior Disputes</span>
                     <span className={`font-bold ${userProfile.chargeback_history_count > 0 ? 'text-rose-600' : 'text-lime-700'}`}>
-                      {userProfile.chargeback_history_count} previous disputes
+                      {userProfile.chargeback_history_count} previous
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-charcoal-500">Risk Tier</span>
-                    <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${userProfile.risk_flag === 'LOW' ? 'bg-lime-50 text-lime-800 border border-lime-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}`}>
+                    <span className={`font-bold ${userProfile.risk_flag === 'LOW' ? 'text-lime-700' : 'text-rose-600'}`}>
                       {userProfile.risk_flag}
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="py-6 text-center text-charcoal-400">Loading user facts...</div>
+                <div className="py-4 text-center text-charcoal-400">Loading customer facts...</div>
               )}
             </div>
           </div>
-
-          {/* Big CTA Banner when not investigated yet */}
-          {!hasStartedInvestigation && (
-            <div className="bg-charcoal-950 text-white rounded-3xl p-8 shadow-card flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="space-y-1.5 max-w-xl">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-lime-400" />
-                  <h4 className="text-base font-bold tracking-tight">
-                    Trigger Autonomous Agent Investigation
-                  </h4>
-                </div>
-                <p className="text-xs text-charcoal-400 leading-relaxed">
-                  The agent will autonomously execute live tool calls against BlueDart/Delhivery APIs, verify cardholder OTP signatures, calculate risk scores, and assemble an auditable representment package.
-                </p>
-              </div>
-
-              <button
-                onClick={() => handleStartInvestigation()}
-                disabled={isRunning}
-                className="flex-shrink-0 flex items-center gap-2 px-6 py-3.5 bg-lime-400 hover:bg-lime-300 text-charcoal-950 rounded-2xl text-xs font-bold transition-all shadow-lime-glow hover:scale-[1.02]"
-              >
-                <Play className="w-4 h-4 fill-charcoal-950" />
-                <span>Start Autonomous Resolution</span>
-              </button>
-            </div>
-          )}
         </div>
       )}
 
       {/* ==================================================== */}
-      {/* STAGE 2: AFTER RUNNING AI (Live Trace & Workshop)    */}
+      {/* 5. AFTER AI RESOLUTION: Decision Trace & Workshop    */}
       {/* ==================================================== */}
       {hasStartedInvestigation && (
         <div className="space-y-6 animate-fade-in">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-lime-600" />
-              <h3 className="text-sm font-bold text-charcoal-900 uppercase tracking-wider">
-                Autonomous AI Investigation & Resolution Workshop
-              </h3>
-            </div>
-            {currentRun && (
-              <span className="text-xs font-mono text-charcoal-500">
-                Engine: {currentRun.model}
-              </span>
-            )}
-          </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Column: Live Decision Trace (5 cols) */}
+            {/* Left: Decision Trace (5 cols) */}
             <div className="lg:col-span-5 bg-white rounded-3xl p-5 border border-charcoal-200 shadow-subtle flex flex-col h-[560px]">
               <div className="flex items-center justify-between pb-3.5 border-b border-charcoal-100">
                 <div className="flex items-center gap-2">
@@ -645,7 +597,7 @@ export function DisputeDetailView({
                       placeholder="e.g. Focus on OTP timestamp verification..."
                       value={operatorGuidance}
                       onChange={(e) => setOperatorGuidance(e.target.value)}
-                      className="w-full p-2.5 text-xs border border-charcoal-300 rounded-xl text-charcoal-900"
+                      className="w-full p-2.5 text-xs border border-charcoal-300 rounded-xl text-charcoal-900 focus:outline-none focus:ring-2 focus:ring-lime-400"
                     />
                     <div className="flex items-center justify-end gap-2">
                       <button
@@ -670,9 +622,9 @@ export function DisputeDetailView({
               </div>
             </div>
 
-            {/* Right Column: AI Verdict, Why-This-Decision & Rebuttal (7 cols) */}
-            <div className="lg:col-span-7 space-y-6">
-              {/* AI Verdict Banner */}
+            {/* Right: AI Verdict & Workshop (7 cols) */}
+            <div className="lg:col-span-7 space-y-5">
+              {/* Verdict Banner */}
               {currentRun && (
                 <div
                   className={`p-6 rounded-3xl border shadow-sm transition-all ${
@@ -722,7 +674,7 @@ export function DisputeDetailView({
                 </div>
               )}
 
-              {/* "Why this decision?" Evidence Assessment */}
+              {/* Why This Decision Panel */}
               {currentRun?.evaluation && (
                 <div className="bg-white rounded-3xl p-6 border border-charcoal-200 shadow-subtle space-y-4">
                   <div className="flex items-center justify-between border-b border-charcoal-100 pb-3">
@@ -770,7 +722,7 @@ export function DisputeDetailView({
                     </div>
                   )}
 
-                  {/* Risk Flags / Discrepancies */}
+                  {/* Risk Flags */}
                   {currentRun.evaluation.contradictory_signals.length > 0 && (
                     <div className="space-y-2 pt-2 border-t border-charcoal-100">
                       <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wider block">
@@ -789,19 +741,33 @@ export function DisputeDetailView({
                 </div>
               )}
 
-              {/* Formal Rebuttal Dossier Preview & Editor */}
+              {/* Rebuttal Letter Card */}
               {currentRun && (
                 <div className="bg-white rounded-3xl p-6 border border-charcoal-200 shadow-subtle space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-charcoal-600" />
                       <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal-900">
-                        Formal Rebuttal Dossier (Network Packet)
+                        Formal Representment Rebuttal Letter
                       </h4>
                     </div>
-                    <span className="text-[11px] font-mono text-charcoal-400">
-                      {rebuttalText.length} characters
-                    </span>
+
+                    <button
+                      onClick={copyRebuttalToClipboard}
+                      className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg text-charcoal-600 hover:text-charcoal-950 bg-charcoal-50 hover:bg-charcoal-100 border border-charcoal-200 transition-colors"
+                    >
+                      {copiedRebuttal ? (
+                        <>
+                          <Check className="w-3 h-3 text-lime-600" />
+                          <span className="text-lime-700">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3 text-charcoal-400" />
+                          <span>Copy Letter</span>
+                        </>
+                      )}
+                    </button>
                   </div>
 
                   <textarea
@@ -817,7 +783,7 @@ export function DisputeDetailView({
               {currentRun && (
                 <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="text-xs text-charcoal-500">
-                    <span className="font-semibold text-charcoal-900">Human-in-the-Loop Review:</span> Operator sign-off commits representment to the card network.
+                    <span className="font-semibold text-charcoal-900">Human-in-the-Loop Review:</span> Operator approval commits the final resolution to the network.
                   </div>
 
                   <div className="flex items-center gap-2 w-full sm:w-auto">
