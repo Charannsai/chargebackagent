@@ -8,38 +8,19 @@ import { DisputeTable } from '@/components/DisputeTable';
 import { DisputeDetailView } from '@/components/DisputeDetailView';
 import { AuditTrailModal } from '@/components/AuditTrailModal';
 import { CreateDisputeModal } from '@/components/CreateDisputeModal';
-import { ArrowUpRight, Sparkles } from 'lucide-react';
+import { ArrowUpRight, Sparkles, ShieldCheck, ArrowRight } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
 
 export default function Home() {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
-  const [engineMode, setEngineMode] = useState<'groq' | 'demo'>('groq');
-  const [isGroqConfigured, setIsGroqConfigured] = useState(false);
   const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
   const [auditDispute, setAuditDispute] = useState<Dispute | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
 
-  // Initial load & health
+  // Load disputes
   useEffect(() => {
-    fetchHealth();
     fetchDisputes();
   }, []);
-
-  const fetchHealth = async () => {
-    try {
-      const res = await fetch('/api/health');
-      if (res.ok) {
-        const data = await res.json();
-        setIsGroqConfigured(data.groq_configured);
-        if (!data.groq_configured) {
-          setEngineMode('demo');
-        }
-      }
-    } catch {
-      setEngineMode('demo');
-    }
-  };
 
   const fetchDisputes = async () => {
     try {
@@ -47,7 +28,6 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json();
         setDisputes(data.disputes || []);
-        // Refresh active selected dispute if open
         if (selectedDispute) {
           const updated = (data.disputes || []).find((d: Dispute) => d.id === selectedDispute.id);
           if (updated) setSelectedDispute(updated);
@@ -58,89 +38,71 @@ export default function Home() {
     }
   };
 
-  const handleResetData = async () => {
-    setIsResetting(true);
-    try {
-      const res = await fetch('/api/disputes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reset' }),
-      });
-      if (res.ok) {
-        await fetchDisputes();
-        setSelectedDispute(null);
-      }
-    } catch (err) {
-      console.error('Failed to reset data:', err);
-    } finally {
-      setIsResetting(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex flex-col font-sans selection:bg-lime-200 selection:text-lime-950">
-      {/* Top Navigation */}
-      <Header
-        engineMode={engineMode}
-        setEngineMode={setEngineMode}
-        isGroqConfigured={isGroqConfigured}
-        onOpenCreateModal={() => setIsCreateModalOpen(true)}
-        onResetData={handleResetData}
-        isResetting={isResetting}
-      />
+      {/* Sleek Top Navigation */}
+      <Header onOpenCreateModal={() => setIsCreateModalOpen(true)} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* ==================================================== */}
-        {/* VIEW 1: FULL-PAGE DISPUTE DETAIL SCREEN             */}
+        {/* VIEW 1: FULL-PAGE DISPUTE INVESTIGATION SCREEN      */}
         {/* ==================================================== */}
         {selectedDispute ? (
           <DisputeDetailView
             dispute={selectedDispute}
             onBack={() => setSelectedDispute(null)}
-            engineMode={engineMode}
+            engineMode="groq"
             onRunComplete={fetchDisputes}
             onViewAudit={(d) => setAuditDispute(d)}
           />
         ) : (
           /* ==================================================== */
-          /* VIEW 2: MAIN DISPUTE QUEUE DASHBOARD                */
+          /* VIEW 2: CLEAN MAIN DISPUTE QUEUE DASHBOARD          */
           /* ==================================================== */
           <div className="space-y-8 animate-fade-in">
-            {/* HERO SECTION: Calm, Minimalist Overview & Benchmarks */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-charcoal-200 shadow-subtle relative overflow-hidden">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="max-w-2xl space-y-2.5">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-charcoal-950 text-white shadow-sm">
-                    <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse"></span>
-                    <span>AUTONOMOUS RISK SPECIALIST</span>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-charcoal-950 tracking-tight">
-                    Razorpay Agentic Chargeback Resolver
-                  </h2>
-                  <p className="text-xs sm:text-sm text-charcoal-600 leading-relaxed">
-                    Autonomous risk-and-operations AI agent that investigates payment disputes. Select any dispute below to view the full transaction evidence screen and trigger autonomous representment investigations.
-                  </p>
+            {/* Minimalist Hero Section */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-charcoal-200 shadow-subtle flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2 max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-charcoal-950 text-white shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse"></span>
+                  <span>AUTONOMOUS OPERATIONS BENCHMARK</span>
                 </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-charcoal-950 tracking-tight">
+                  Autonomous Chargeback Resolution
+                </h2>
+                <p className="text-xs sm:text-sm text-charcoal-600 leading-relaxed">
+                  Autonomous AI specialist that investigates payment disputes. Select any dispute to inspect gateway authorization, courier telemetry signatures, customer risk flags, and trigger representment investigations.
+                </p>
+              </div>
 
-                {/* Active AI Status Card */}
-                <div className="bg-charcoal-50 p-4 rounded-2xl border border-charcoal-200/80 flex flex-col gap-1.5 min-w-[240px]">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-charcoal-500">
-                    Active Intelligence
+              {/* Quick Preset Scenarios */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs">
+                <div className="bg-charcoal-50 p-4 rounded-2xl border border-charcoal-200 text-charcoal-700 space-y-1">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-500 block">
+                    Supported Network Workflows
                   </span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-lime-500 shadow-lime-glow-sm"></div>
-                    <span className="text-xs font-bold text-charcoal-900">
-                      {engineMode === 'groq' ? 'Groq / Llama 3.3 70B' : 'Deterministic Operations Simulator'}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-charcoal-500">
-                    Autonomous Dynamic Tool Loop
+                  <p className="text-xs font-medium text-charcoal-900">
+                    Visa 13.1 • Mastercard 4855 • RuPay Non-Receipt • Fraud ATO
                   </p>
                 </div>
               </div>
+            </div>
 
-              {/* Benchmark Case Studies */}
-              <div className="mt-6 pt-5 border-t border-charcoal-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Clean KPI Metrics */}
+            <MetricsBar disputes={disputes} />
+
+            {/* Quick Benchmark Cases Row */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-charcoal-500">
+                  Benchmark Test Cases
+                </span>
+                <span className="text-[11px] text-charcoal-400">
+                  Click any case to open full investigation
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {disputes.slice(0, 4).map((caseItem, idx) => {
                   const caseLabel =
                     idx === 0
@@ -164,22 +126,22 @@ export default function Home() {
                     <div
                       key={caseItem.id}
                       onClick={() => setSelectedDispute(caseItem)}
-                      className="group p-3.5 rounded-2xl bg-charcoal-50/70 hover:bg-lime-50/50 border border-charcoal-200 hover:border-lime-300 transition-all cursor-pointer shadow-subtle flex flex-col justify-between"
+                      className="group p-4 rounded-2xl bg-white hover:bg-lime-50/40 border border-charcoal-200 hover:border-lime-300 transition-all cursor-pointer shadow-subtle flex flex-col justify-between"
                     >
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-[11px]">
-                          <span className="font-semibold text-charcoal-900 group-hover:text-charcoal-950">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-charcoal-900 group-hover:text-charcoal-950">
                             {caseLabel}
                           </span>
-                          <ArrowUpRight className="w-3.5 h-3.5 text-charcoal-400 group-hover:text-lime-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                          <ArrowUpRight className="w-4 h-4 text-charcoal-400 group-hover:text-lime-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </div>
                         <p className="text-[11px] text-charcoal-500 truncate">
                           {caseItem.merchant_name}
                         </p>
                       </div>
 
-                      <div className="mt-3 pt-2 border-t border-charcoal-200/60 flex items-center justify-between text-[11px]">
-                        <span className="font-bold font-mono text-charcoal-950">
+                      <div className="mt-4 pt-2.5 border-t border-charcoal-100 flex items-center justify-between text-[11px]">
+                        <span className="font-bold font-mono text-charcoal-950 text-xs">
                           {formatINR(caseItem.amount)}
                         </span>
                         <span className="text-charcoal-500 font-medium">
@@ -192,18 +154,15 @@ export default function Home() {
               </div>
             </div>
 
-            {/* High-Level KPI Metrics Bar */}
-            <MetricsBar disputes={disputes} />
-
             {/* Dispute Operations Queue Table */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-semibold text-charcoal-950 tracking-tight">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-charcoal-900">
                     Dispute Operations Queue
                   </h3>
                   <p className="text-xs text-charcoal-500">
-                    Click any dispute row to open the full investigation screen.
+                    Click any dispute row to open the investigation screen and trigger the AI Resolver.
                   </p>
                 </div>
               </div>
@@ -218,22 +177,22 @@ export default function Home() {
         )}
       </main>
 
-      {/* Footer */}
+      {/* Clean Footer */}
       <footer className="w-full bg-white border-t border-charcoal-200 py-6 mt-12 text-xs text-charcoal-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-charcoal-900">
+            <span className="font-bold text-charcoal-900">
               Razorpay Agentic Chargeback Resolver
             </span>
             <span>•</span>
             <span>Authored by Charan Sai Pathuri (AI Builder Target Role)</span>
           </div>
           <div className="flex items-center gap-4 text-charcoal-400 font-mono text-[11px]">
-            <span>Groq Llama 3.3 70B</span>
+            <span>Llama 3.3 70B (Groq)</span>
             <span>•</span>
             <span>Autonomous State Machine</span>
             <span>•</span>
-            <span>Inter & JetBrains Mono</span>
+            <span>Inter Typography</span>
           </div>
         </div>
       </footer>

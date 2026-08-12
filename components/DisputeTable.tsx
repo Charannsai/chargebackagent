@@ -102,9 +102,9 @@ export function DisputeTable({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-charcoal-200 shadow-subtle overflow-hidden">
+    <div className="bg-white rounded-3xl border border-charcoal-200 shadow-subtle overflow-hidden">
       {/* Table Header Controls */}
-      <div className="p-4 sm:p-5 border-b border-charcoal-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-4 sm:p-5 border-b border-charcoal-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         {/* Filter Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
           {[
