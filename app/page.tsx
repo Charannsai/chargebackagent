@@ -76,9 +76,6 @@ export default function Home() {
             <span className="text-xs font-bold uppercase tracking-wider text-charcoal-500">
               Benchmark Test Cases
             </span>
-            <span className="text-[11px] text-charcoal-400">
-              Click any case to open its dedicated URL route
-            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -136,14 +133,9 @@ export default function Home() {
         {/* Dispute Operations Queue Table */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-charcoal-900">
-                Dispute Operations Queue
-              </h3>
-              <p className="text-xs text-charcoal-500">
-                Click any dispute row to navigate directly to its dedicated resolution page.
-              </p>
-            </div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-charcoal-900">
+              Dispute Operations Queue
+            </h3>
           </div>
 
           <DisputeTable
