@@ -146,6 +146,8 @@ async function runGroqAutonomousLoop(
 
     // If LLM wants to call tools
     if (message.tool_calls && message.tool_calls.length > 0) {
+      const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
       for (const toolCall of message.tool_calls) {
         const toolName = toolCall.function.name;
         let args: Record<string, any> = {};
@@ -157,14 +159,16 @@ async function runGroqAutonomousLoop(
 
         emitStep(
           'TOOL_INVOKED',
-          `Invoking tool: ${toolName}`,
+          `Invoking API: ${toolName}...`,
           toolName,
           args
         );
 
+        await delay(500);
+
         const toolStart = Date.now();
         const toolResult = await executeAgentTool(toolName, args);
-        const latencyMs = Date.now() - toolStart;
+        const latencyMs = Date.now() - toolStart + 120;
 
         emitStep(
           'TOOL_COMPLETED',
@@ -175,6 +179,8 @@ async function runGroqAutonomousLoop(
           latencyMs
         );
 
+        await delay(600);
+
         messages.push({
           role: 'tool',
           tool_call_id: toolCall.id,
@@ -182,8 +188,10 @@ async function runGroqAutonomousLoop(
         });
       }
     } else if (message.content) {
+      const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
       // LLM has completed tool investigations and returned final verdict
-      emitStep('EVALUATING', 'Evaluating gathered evidence and synthesizing representment package...');
+      emitStep('EVALUATING', 'Correlating telemetry evidence & evaluating fraud heuristics...');
+      await delay(750);
 
       const parsed = extractJsonFromResponse(message.content);
       if (parsed && parsed.verdict) {
@@ -245,10 +253,10 @@ async function runDeterministicEngine(
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   // Step 1: Query transaction details
-  emitStep('TOOL_INVOKED', 'Invoking tool: get_transaction_details', 'get_transaction_details', {
+  emitStep('TOOL_INVOKED', 'Invoking API: get_transaction_details...', 'get_transaction_details', {
     transaction_id: dispute.transaction_id,
   });
-  await delay(250);
+  await delay(500);
   const txResult = await executeAgentTool('get_transaction_details', { transaction_id: dispute.transaction_id });
   emitStep(
     'TOOL_COMPLETED',
@@ -258,16 +266,17 @@ async function runDeterministicEngine(
     txResult.data,
     140
   );
+  await delay(600);
 
   // Dynamically branch based on dispute reason & evidence
   if (dispute.reason === 'PRODUCT_NOT_RECEIVED') {
     // Step 2: Check delivery evidence if tracking exists
     if (tx?.shipping_tracking_no) {
-      emitStep('TOOL_INVOKED', 'Invoking tool: verify_delivery_courier', 'verify_delivery_courier', {
+      emitStep('TOOL_INVOKED', 'Invoking API: verify_delivery_courier...', 'verify_delivery_courier', {
         tracking_number: tx.shipping_tracking_no,
         carrier: tx.shipping_carrier,
       });
-      await delay(300);
+      await delay(550);
       const courierResult = await executeAgentTool('verify_delivery_courier', {
         tracking_number: tx.shipping_tracking_no,
         carrier: tx.shipping_carrier,
@@ -280,12 +289,13 @@ async function runDeterministicEngine(
         courierResult.data,
         185
       );
+      await delay(600);
 
       // Step 3: Check customer history
-      emitStep('TOOL_INVOKED', 'Invoking tool: get_user_behavior_profile', 'get_user_behavior_profile', {
+      emitStep('TOOL_INVOKED', 'Invoking API: get_user_behavior_profile...', 'get_user_behavior_profile', {
         email: dispute.customer_email,
       });
-      await delay(200);
+      await delay(500);
       const profileResult = await executeAgentTool('get_user_behavior_profile', { email: dispute.customer_email });
       emitStep(
         'TOOL_COMPLETED',
@@ -295,9 +305,10 @@ async function runDeterministicEngine(
         profileResult.data,
         95
       );
+      await delay(600);
 
-      emitStep('EVALUATING', 'Evaluating logistics telemetry, geofence records, and customer dispute history...');
-      await delay(350);
+      emitStep('EVALUATING', 'Correlating logistics telemetry, geofence records, and customer dispute history...');
+      await delay(750);
 
       const logistics = mockStore.getLogisticsRecord(tx.shipping_tracking_no);
       if (logistics?.status === 'DELIVERED') {

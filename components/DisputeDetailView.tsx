@@ -79,6 +79,12 @@ export function DisputeDetailView({
     }
   }, [dispute?.id]);
 
+  useEffect(() => {
+    if (isRunning && traceEndRef.current) {
+      traceEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [steps.length, isRunning]);
+
   const fetchDisputeDetails = async (disputeId: string) => {
     setIsLoadingDetails(true);
     try {
@@ -467,37 +473,66 @@ export function DisputeDetailView({
               {steps.map((step, idx) => {
                 const isCompleted = step.event_type === 'TOOL_COMPLETED';
                 const isDecision = step.event_type === 'DECISION_READY';
+                const isInvoked = step.event_type === 'TOOL_INVOKED';
+                const isEvaluating = step.event_type === 'EVALUATING';
 
                 return (
                   <div
                     key={step.id || idx}
-                    className="flex items-center justify-between p-2.5 rounded-2xl bg-charcoal-50/70 border border-charcoal-200/80 text-xs"
+                    className={`flex items-center justify-between p-2.5 rounded-2xl border text-xs transition-all animate-slide-up ${
+                      isDecision
+                        ? 'bg-charcoal-950 text-white border-charcoal-900 shadow-sm'
+                        : isEvaluating
+                        ? 'bg-amber-50/70 border-amber-200 text-amber-950'
+                        : isInvoked
+                        ? 'bg-lime-50/70 border-lime-200 text-lime-950 animate-pulse'
+                        : isCompleted
+                        ? 'bg-charcoal-50/70 border-charcoal-200/80 text-charcoal-900'
+                        : 'bg-charcoal-50/70 border-charcoal-200/80 text-charcoal-900'
+                    }`}
                   >
                     <div className="flex items-center gap-2 truncate">
                       <div
                         className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] flex-shrink-0 ${
                           isDecision
-                            ? 'bg-charcoal-950 text-lime-400'
+                            ? 'bg-lime-400 text-charcoal-950 font-bold'
+                            : isEvaluating
+                            ? 'bg-amber-400 text-amber-950'
+                            : isInvoked
+                            ? 'bg-lime-500 text-white'
                             : isCompleted
                             ? 'bg-lime-100 text-lime-700'
                             : 'bg-charcoal-200 text-charcoal-700'
                         }`}
                       >
-                        {isCompleted ? '✓' : isDecision ? '★' : '•'}
+                        {isCompleted ? '✓' : isDecision ? '★' : isInvoked ? '⚡' : isEvaluating ? '✦' : '•'}
                       </div>
-                      <span className="font-sans font-medium text-charcoal-900 truncate">
+                      <span className={`font-sans font-medium truncate ${isDecision ? 'text-lime-300 font-semibold' : 'text-charcoal-900'}`}>
                         {step.label}
                       </span>
                     </div>
 
                     {step.latency_ms > 0 && (
-                      <span className="text-[10px] font-mono text-charcoal-400 bg-white px-1.5 py-0.5 rounded border border-charcoal-200 flex-shrink-0 ml-2">
+                      <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border flex-shrink-0 ml-2 ${
+                        isDecision ? 'bg-charcoal-800 text-lime-400 border-charcoal-700' : 'bg-white text-charcoal-400 border-charcoal-200'
+                      }`}>
                         {step.latency_ms}ms
                       </span>
                     )}
                   </div>
                 );
               })}
+
+              {isRunning && (
+                <div className="flex items-center gap-2 p-2.5 rounded-2xl bg-lime-50/70 border border-lime-300 text-xs animate-pulse">
+                  <div className="w-4 h-4 rounded-full bg-lime-500 text-charcoal-950 flex items-center justify-center text-[10px] font-bold animate-spin">
+                    ✦
+                  </div>
+                  <span className="font-sans font-semibold text-lime-950">
+                    Executing live tool calling loop...
+                  </span>
+                </div>
+              )}
               <div ref={traceEndRef} />
             </div>
           </div>
