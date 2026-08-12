@@ -2,15 +2,13 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Plus, Info, RotateCcw } from 'lucide-react';
+import { Plus, Info } from 'lucide-react';
 
 interface HeaderProps {
   onOpenCreateModal?: () => void;
-  onResetData?: () => void;
-  isResetting?: boolean;
 }
 
-export function Header({ onOpenCreateModal, onResetData, isResetting }: HeaderProps) {
+export function Header({ onOpenCreateModal }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 w-full pointer-events-none">
       {/* Background layer with continuous smooth bottom fade */}
@@ -28,7 +26,7 @@ export function Header({ onOpenCreateModal, onResetData, isResetting }: HeaderPr
           </p>
         </Link>
 
-        {/* Actions: Know More, Reset Data & Simulate Dispute */}
+        {/* Actions: Know More & Simulate Dispute */}
         <div className="flex items-center gap-2.5">
           <Link
             href="/know-more"
@@ -37,18 +35,6 @@ export function Header({ onOpenCreateModal, onResetData, isResetting }: HeaderPr
             <Info className="w-3.5 h-3.5 text-charcoal-500" />
             <span>Know More</span>
           </Link>
-
-          {onResetData && (
-            <button
-              onClick={onResetData}
-              disabled={isResetting}
-              title="Reset benchmark data to initial pending state"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-semibold text-charcoal-600 hover:text-charcoal-950 bg-white hover:bg-charcoal-50 border border-charcoal-200 transition-all shadow-subtle hover:scale-[1.01] disabled:opacity-50"
-            >
-              <RotateCcw className={`w-3.5 h-3.5 text-charcoal-500 ${isResetting ? 'animate-spin' : ''}`} />
-              <span>Reset Data</span>
-            </button>
-          )}
 
           {onOpenCreateModal && (
             <button
