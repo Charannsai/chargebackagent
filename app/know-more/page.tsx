@@ -44,7 +44,7 @@ export default function KnowMorePage() {
             Why This Architecture Matters to Razorpay
           </h1>
           <p className="text-xs sm:text-sm text-charcoal-600 leading-relaxed max-w-2xl">
-            A first-principles breakdown of the business value, deterministic agent loop, card network compliance protections, and human-in-the-loop safety architecture.
+            A first-principles breakdown of the operational value, guardrailed agent state loop, merchant health protections, and human-in-the-loop safety architecture.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export default function KnowMorePage() {
         {/* ==================================================== */}
         {activeTab === 'why' && (
           <div className="space-y-5 animate-fade-in">
-            {/* 1. The Operational Bottleneck */}
+            {/* 1. The Cost of Manual Dispute Operations */}
             <div className="group relative bg-white p-6 sm:p-8 rounded-3xl border border-charcoal-200 shadow-subtle overflow-hidden transition-all hover:border-charcoal-300">
               {/* Big Faded Overlay Number 01 */}
               <div className="absolute top-1 right-5 text-7xl sm:text-9xl font-black font-mono text-charcoal-100/70 select-none pointer-events-none [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)] transition-colors group-hover:text-lime-100/80">
@@ -96,28 +96,28 @@ export default function KnowMorePage() {
 
               <div className="relative z-10 space-y-4">
                 <h3 className="text-base sm:text-lg font-bold text-charcoal-950 tracking-tight">
-                  The Operational Bottleneck (The $ Billion Problem)
+                  The Cost of Manual Dispute Operations
                 </h3>
 
                 <div className="space-y-3 text-xs sm:text-[13px] leading-relaxed">
                   <div className="p-4 rounded-2xl bg-charcoal-50/80 border border-charcoal-200/80 space-y-1">
                     <span className="font-bold text-charcoal-900 block">The Status Quo:</span>
                     <p className="text-charcoal-600">
-                      Payment disputes and chargebacks require risk analysts to manually open 4 to 5 different tools: the internal ledger, customer support tickets, payment gateway logs, and third-party logistics APIs (e.g., Delhivery, BlueDart). Each dispute takes <strong>15 to 30 minutes</strong> of human investigation.
+                      Disputes can require analysts to investigate across multiple systems—internal ledgers, customer support tickets, payment gateway logs, and third-party logistics APIs (e.g., Delhivery, BlueDart)—manually gathering and correlating fragmented records.
                     </p>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-lime-50/70 border border-lime-200/90 space-y-1">
-                    <span className="font-bold text-lime-950 block">The Agent Solution:</span>
+                    <span className="font-bold text-lime-950 block">The Prototype Demonstration:</span>
                     <p className="text-lime-900">
-                      This system collapses that entire pipeline into <strong>10 seconds</strong>. By executing structured tool-calling parallelly, the agent aggregates ledger data, courier status, and risk signals instantly, drafting a complete evidence packet without human intervention.
+                      The prototype demonstrates a seconds-scale investigation workflow over synthetic payment and logistics data. By dynamically orchestrating structured tool calls, the agent aggregates ledger data, courier status, and risk signals instantly, drafting a complete evidence packet without human intervention.
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 2. Deterministic Execution over "Chatbot" Guesswork */}
+            {/* 2. Guardrailed Agent State Machine */}
             <div className="group relative bg-white p-6 sm:p-8 rounded-3xl border border-charcoal-200 shadow-subtle overflow-hidden transition-all hover:border-charcoal-300">
               {/* Big Faded Overlay Number 02 */}
               <div className="absolute top-1 right-5 text-7xl sm:text-9xl font-black font-mono text-charcoal-100/70 select-none pointer-events-none [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)] transition-colors group-hover:text-lime-100/80">
@@ -126,28 +126,28 @@ export default function KnowMorePage() {
 
               <div className="relative z-10 space-y-4">
                 <h3 className="text-base sm:text-lg font-bold text-charcoal-950 tracking-tight">
-                  Deterministic Execution over &quot;Chatbot&quot; Guesswork
+                  Deterministic Environment over &quot;Chatbot&quot; Guesswork
                 </h3>
 
                 <div className="space-y-3 text-xs sm:text-[13px] leading-relaxed">
                   <div className="p-4 rounded-2xl bg-charcoal-50/80 border border-charcoal-200/80 space-y-1">
-                    <span className="font-bold text-charcoal-900 block">Why it&apos;s not a wrapper:</span>
+                    <span className="font-bold text-charcoal-900 block">Why it&apos;s not a chatbot wrapper:</span>
                     <p className="text-charcoal-600">
-                      Traditional LLM chatbots hallucinate and are unreliable for financial operations.
+                      Traditional LLM chatbots hallucinate and are unreliable for financial operations because they generate unconstrained natural language.
                     </p>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-lime-50/70 border border-lime-200/90 space-y-1">
-                    <span className="font-bold text-lime-950 block">Deterministic State Machine:</span>
+                    <span className="font-bold text-lime-950 block">Guardrailed Agent State Machine:</span>
                     <p className="text-lime-900">
-                      This prototype implements a <strong>strict state-machine loop</strong> utilizing JSON-schema tool calling. The LLM does not make decisions based on memory; it is forced to interact with deterministic APIs (mocked via Supabase) to gather verified facts before outputting a verdict. If a tool fails or returns missing data, the agent safely flags it for escalation.
+                      The LLM determines the next investigative action, while tool execution, schemas, state transitions, safety limits, and evidence construction are deterministic. The agent is forced to interact with validated tools (simulated via Supabase/mock telemetry) to gather verified facts before outputting a verdict. If a tool fails or returns missing data, the agent safely flags it for escalation.
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 3. Protecting Merchant Health & Card Network Compliance */}
+            {/* 3. Protecting Merchant Health & Evidence Quality */}
             <div className="group relative bg-white p-6 sm:p-8 rounded-3xl border border-charcoal-200 shadow-subtle overflow-hidden transition-all hover:border-charcoal-300">
               {/* Big Faded Overlay Number 03 */}
               <div className="absolute top-1 right-5 text-7xl sm:text-9xl font-black font-mono text-charcoal-100/70 select-none pointer-events-none [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)] transition-colors group-hover:text-lime-100/80">
@@ -156,21 +156,21 @@ export default function KnowMorePage() {
 
               <div className="relative z-10 space-y-4">
                 <h3 className="text-base sm:text-lg font-bold text-charcoal-950 tracking-tight">
-                  Protecting Merchant Health &amp; Card Network Compliance
+                  Protecting Merchant Health &amp; Evidence Quality
                 </h3>
 
                 <div className="space-y-3 text-xs sm:text-[13px] leading-relaxed">
                   <div className="p-4 rounded-2xl bg-charcoal-50/80 border border-charcoal-200/80 space-y-1">
                     <span className="font-bold text-charcoal-900 block">The Risk:</span>
                     <p className="text-charcoal-600">
-                      If a merchant’s chargeback-to-transaction ratio exceeds <strong>0.9%</strong>, card networks (Visa/Mastercard) place them in high-risk monitoring programs, leading to massive fines and paused settlements.
+                      Excessive fraud and dispute activity can trigger monitoring and remediation programs, increasing operational costs and putting pressure on merchant payment performance.
                     </p>
                   </div>
 
                   <div className="p-4 rounded-2xl bg-lime-50/70 border border-lime-200/90 space-y-1">
                     <span className="font-bold text-lime-950 block">The Agent Solution:</span>
                     <p className="text-lime-900">
-                      By automating the drafting of highly structured &quot;Representment&quot; packages (compelling evidence formatted precisely to card network rules), merchants can defend against friendly fraud faster, win more disputes, and keep their dispute ratio well below the danger threshold.
+                      By accelerating evidence collection and representment preparation, the system can help operations teams respond to disputes consistently, format compelling evidence aligned with common chargeback evidence requirements, and identify cases that require human intervention.
                     </p>
                   </div>
                 </div>
@@ -260,7 +260,7 @@ export default function KnowMorePage() {
                       Evidence Synthesis
                     </h4>
                     <p className="text-xs text-charcoal-600 leading-relaxed">
-                      The agent scores evidence strength, checks corroborating signals, and drafts a formal representment rebuttal letter aligned with card network rules.
+                      The agent scores evidence strength, checks corroborating signals, and drafts a formal representment rebuttal letter aligned with common chargeback evidence requirements.
                     </p>
                   </div>
                 </div>
@@ -298,10 +298,10 @@ export default function KnowMorePage() {
                 </h4>
               </div>
               <p className="text-xs text-charcoal-600 leading-relaxed">
-                This working prototype demonstrates the full autonomous reasoning loop and streaming UI using curated benchmark telemetry and live Groq LLM tool calling.
+                This working prototype demonstrates the full autonomous reasoning loop and streaming UI over synthetic payment, logistics, and risk data using live Groq LLM tool calling.
               </p>
               <p className="text-xs text-charcoal-600 leading-relaxed">
-                In an enterprise production deployment at Razorpay scale, the agent connects directly to real-time gateway webhooks, courier REST APIs (BlueDart, Delhivery, Shadowfax), internal merchant CRM microservices, and card network representment APIs (Visa VROL, Mastercard MasterCom, RuPay DMS).
+                A production implementation could integrate with relevant network representment systems and partner APIs (such as Visa VROL, Mastercard MasterCom, or RuPay DMS), subject to access, certification, and network requirements, alongside live payment gateway webhooks, courier REST APIs (e.g. BlueDart, Delhivery, Shadowfax), and internal merchant CRM microservices.
               </p>
             </div>
 

@@ -265,10 +265,10 @@ export function KnowMoreModal({ isOpen, onClose }: KnowMoreModalProps) {
                   </h4>
                 </div>
                 <p className="text-lime-900 leading-relaxed">
-                  This tool is an interactive working prototype running on curated benchmark dispute telemetry and live Groq LLM tool loops.
+                  This working prototype demonstrates the full autonomous reasoning loop and streaming UI over synthetic payment, logistics, and risk data using live Groq LLM tool calling.
                 </p>
                 <p className="text-lime-900/90 leading-relaxed">
-                  In a production enterprise deployment, the agent directly integrates with live Razorpay payment gateway webhooks, courier partner REST APIs (BlueDart, Delhivery, Shadowfax), internal risk scoring microservices, and card network representment APIs (Visa VROL, Mastercard MasterCom), processing real-time dispute payloads with sub-second latency and zero manual delay.
+                  A production implementation could integrate with relevant network representment systems and partner APIs (such as Visa VROL, Mastercard MasterCom, or RuPay DMS), subject to access, certification, and network requirements, alongside live payment gateway webhooks, courier partner REST APIs (e.g. BlueDart, Delhivery, Shadowfax), and internal risk scoring microservices.
                 </p>
               </div>
 
