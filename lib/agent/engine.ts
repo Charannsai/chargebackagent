@@ -504,7 +504,7 @@ async function runDeterministicEngine(
     {
       verdict: run.final_verdict,
       confidence: run.confidence_score,
-      strength: run.evaluation.evidence_strength,
+      strength: run.evaluation?.evidence_strength,
     }
   );
 }
