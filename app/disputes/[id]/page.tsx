@@ -41,10 +41,34 @@ export default function DisputeDetailPage() {
     }
   };
 
+  const [isResetting, setIsResetting] = useState(false);
+
+  const handleResetData = async () => {
+    setIsResetting(true);
+    try {
+      const res = await fetch('/api/disputes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset' }),
+      });
+      if (res.ok) {
+        if (disputeId) await fetchDispute(disputeId);
+      }
+    } catch (err) {
+      console.error('Failed to reset data:', err);
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex flex-col font-sans selection:bg-lime-200 selection:text-lime-950">
       {/* Sleek Floating Header */}
-      <Header onOpenCreateModal={() => setIsCreateModalOpen(false)} />
+      <Header
+        onOpenCreateModal={() => setIsCreateModalOpen(true)}
+        onResetData={handleResetData}
+        isResetting={isResetting}
+      />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isLoading ? (

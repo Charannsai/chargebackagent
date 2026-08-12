@@ -16,6 +16,8 @@ export default function Home() {
   const [auditDispute, setAuditDispute] = useState<Dispute | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  const [isResetting, setIsResetting] = useState(false);
+
   // Load disputes
   useEffect(() => {
     fetchDisputes();
@@ -33,10 +35,32 @@ export default function Home() {
     }
   };
 
+  const handleResetData = async () => {
+    setIsResetting(true);
+    try {
+      const res = await fetch('/api/disputes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset' }),
+      });
+      if (res.ok) {
+        await fetchDisputes();
+      }
+    } catch (err) {
+      console.error('Failed to reset data:', err);
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex flex-col font-sans selection:bg-lime-200 selection:text-lime-950">
       {/* Sleek Borderless Header */}
-      <Header onOpenCreateModal={() => setIsCreateModalOpen(true)} />
+      <Header
+        onOpenCreateModal={() => setIsCreateModalOpen(true)}
+        onResetData={handleResetData}
+        isResetting={isResetting}
+      />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
         {/* Minimalist Hero Section */}
