@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ShieldCheck, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface HeaderProps {
   onOpenCreateModal: () => void;
@@ -9,40 +9,35 @@ interface HeaderProps {
 
 export function Header({ onOpenCreateModal }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-30 w-full bg-[#FFFFFF]/90 backdrop-blur-md border-b border-charcoal-200 shadow-subtle">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand & Identity */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-charcoal-950 flex items-center justify-center text-white shadow-sm ring-1 ring-charcoal-800">
-            <ShieldCheck className="w-5 h-5 text-lime-400" />
+    <header className="sticky top-0 z-30 w-full bg-[#FAFAFA]/85 backdrop-blur-md transition-all">
+      {/* Bottom ambient fade gradient instead of a border line */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        {/* Brand & Identity: Pure Clean Typography */}
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <h1 className="font-extrabold text-charcoal-950 text-lg sm:text-xl tracking-tight font-sans">
+              Razorpay <span className="font-light text-charcoal-400">Chargeback Resolver</span>
+            </h1>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-bold text-charcoal-950 text-base tracking-tight">
-                Razorpay <span className="font-normal text-charcoal-500">Chargeback Resolver</span>
-              </h1>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-lime-50 text-lime-800 border border-lime-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse"></span>
-                Autonomous Agent
-              </span>
-            </div>
-            <p className="text-xs text-charcoal-500 hidden sm:block">
-              AI Risk & Operations Specialist • Autonomous Representment Engine
-            </p>
-          </div>
+          <p className="text-[11px] text-charcoal-500 hidden sm:block tracking-wide">
+            Autonomous Risk & Dispute Operations Intelligence
+          </p>
         </div>
 
         {/* Action: Simulate Custom Dispute */}
         <div className="flex items-center gap-3">
           <button
             onClick={onOpenCreateModal}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-charcoal-950 hover:bg-charcoal-800 text-white shadow-sm transition-all hover:ring-2 hover:ring-lime-400/40 hover:scale-[1.01]"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-semibold bg-charcoal-950 hover:bg-charcoal-800 text-white shadow-subtle transition-all hover:ring-2 hover:ring-lime-400/30 hover:scale-[1.01]"
           >
             <Plus className="w-3.5 h-3.5 text-lime-400" />
             <span>Simulate Dispute</span>
           </button>
         </div>
       </div>
+
+      {/* Subtle bottom gradient fade overlay */}
+      <div className="w-full h-3 bg-gradient-to-b from-[#FAFAFA]/80 to-transparent pointer-events-none -mb-3" />
     </header>
   );
 }
