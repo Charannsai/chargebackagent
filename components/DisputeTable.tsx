@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Dispute, DisputeStatus } from '@/lib/types';
 import { formatINR, formatDate } from '@/lib/utils';
 import {
@@ -25,8 +26,16 @@ export function DisputeTable({
   onSelectDispute,
   selectedDisputeId,
 }: DisputeTableProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
+
+  const handleRowClick = (dispute: Dispute) => {
+    if (onSelectDispute) {
+      onSelectDispute(dispute);
+    }
+    router.push(`/disputes/${dispute.id}`);
+  };
 
   const filteredDisputes = disputes.filter((d) => {
     const matchesSearch =
@@ -168,7 +177,7 @@ export function DisputeTable({
                 return (
                   <tr
                     key={dispute.id}
-                    onClick={() => onSelectDispute(dispute)}
+                    onClick={() => handleRowClick(dispute)}
                     className={`cursor-pointer hover:bg-charcoal-50/80 transition-colors group ${
                       isSelected ? 'bg-lime-50/40' : ''
                     }`}
