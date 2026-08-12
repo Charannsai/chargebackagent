@@ -29,6 +29,7 @@ import {
   History,
   Copy,
   ChevronDown,
+  ChevronUp,
   Layers,
 } from 'lucide-react';
 
@@ -59,6 +60,7 @@ export function DisputeDetailView({
   const [currentRun, setCurrentRun] = useState<AgentRun | null>(null);
   const [rebuttalText, setRebuttalText] = useState('');
   const [activeRightTab, setActiveRightTab] = useState<'verdict' | 'rebuttal' | 'telemetry'>('verdict');
+  const [expandedStepIds, setExpandedStepIds] = useState<Record<string, boolean>>({});
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [showOverrideMenu, setShowOverrideMenu] = useState(false);
   const [overrideNotes, setOverrideNotes] = useState('');
@@ -70,6 +72,13 @@ export function DisputeDetailView({
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const toggleStepExpand = (stepKey: string) => {
+    setExpandedStepIds((prev) => ({
+      ...prev,
+      [stepKey]: !prev[stepKey],
+    }));
   };
 
   // Load dispute context on mount
@@ -468,56 +477,111 @@ export function DisputeDetailView({
               </span>
             </div>
 
-            {/* Trace Steps List */}
-            <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+            {/* Trace Steps List with interactive dropdowns */}
+            <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
               {steps.map((step, idx) => {
+                const stepKey = step.id || `step_${idx}`;
+                const isExpanded = Boolean(expandedStepIds[stepKey]);
                 const isCompleted = step.event_type === 'TOOL_COMPLETED';
                 const isDecision = step.event_type === 'DECISION_READY';
                 const isInvoked = step.event_type === 'TOOL_INVOKED';
                 const isEvaluating = step.event_type === 'EVALUATING';
+                const hasDetails = Boolean(step.arguments || step.result || step.tool_name);
 
                 return (
                   <div
-                    key={step.id || idx}
-                    className={`flex items-center justify-between p-2.5 rounded-2xl border text-xs transition-all animate-slide-up ${
+                    key={stepKey}
+                    className={`rounded-2xl border text-xs transition-all animate-slide-up overflow-hidden ${
                       isDecision
                         ? 'bg-charcoal-950 text-white border-charcoal-900 shadow-sm'
                         : isEvaluating
                         ? 'bg-amber-50/70 border-amber-200 text-amber-950'
                         : isInvoked
-                        ? 'bg-lime-50/70 border-lime-200 text-lime-950 animate-pulse'
-                        : isCompleted
-                        ? 'bg-charcoal-50/70 border-charcoal-200/80 text-charcoal-900'
+                        ? 'bg-lime-50/70 border-lime-200 text-lime-950'
                         : 'bg-charcoal-50/70 border-charcoal-200/80 text-charcoal-900'
                     }`}
                   >
-                    <div className="flex items-center gap-2 truncate">
-                      <div
-                        className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] flex-shrink-0 ${
-                          isDecision
-                            ? 'bg-lime-400 text-charcoal-950 font-bold'
-                            : isEvaluating
-                            ? 'bg-amber-400 text-amber-950'
-                            : isInvoked
-                            ? 'bg-lime-500 text-white'
-                            : isCompleted
-                            ? 'bg-lime-100 text-lime-700'
-                            : 'bg-charcoal-200 text-charcoal-700'
-                        }`}
-                      >
-                        {isCompleted ? '✓' : isDecision ? '★' : isInvoked ? '⚡' : isEvaluating ? '✦' : '•'}
+                    {/* Header Click Row */}
+                    <div
+                      onClick={() => hasDetails && toggleStepExpand(stepKey)}
+                      className={`flex items-center justify-between p-3 select-none ${hasDetails ? 'cursor-pointer hover:bg-black/5 transition-colors' : ''}`}
+                    >
+                      <div className="flex items-center gap-2.5 truncate">
+                        <div
+                          className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] flex-shrink-0 ${
+                            isDecision
+                              ? 'bg-lime-400 text-charcoal-950 font-bold'
+                              : isEvaluating
+                              ? 'bg-amber-400 text-amber-950'
+                              : isInvoked
+                              ? 'bg-lime-500 text-white'
+                              : isCompleted
+                              ? 'bg-lime-100 text-lime-700'
+                              : 'bg-charcoal-200 text-charcoal-700'
+                          }`}
+                        >
+                          {isCompleted ? '✓' : isDecision ? '★' : isInvoked ? '⚡' : isEvaluating ? '✦' : '•'}
+                        </div>
+                        <span className={`font-sans font-medium truncate ${isDecision ? 'text-lime-300 font-semibold' : 'text-charcoal-900'}`}>
+                          {step.label}
+                        </span>
                       </div>
-                      <span className={`font-sans font-medium truncate ${isDecision ? 'text-lime-300 font-semibold' : 'text-charcoal-900'}`}>
-                        {step.label}
-                      </span>
+
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                        {step.latency_ms > 0 && (
+                          <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                            isDecision ? 'bg-charcoal-800 text-lime-400 border-charcoal-700' : 'bg-white text-charcoal-400 border-charcoal-200'
+                          }`}>
+                            {step.latency_ms}ms
+                          </span>
+                        )}
+
+                        {hasDetails && (
+                          <div className="text-charcoal-400 hover:text-charcoal-600">
+                            {isExpanded ? (
+                              <ChevronUp className="w-3.5 h-3.5" />
+                            ) : (
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {step.latency_ms > 0 && (
-                      <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border flex-shrink-0 ml-2 ${
-                        isDecision ? 'bg-charcoal-800 text-lime-400 border-charcoal-700' : 'bg-white text-charcoal-400 border-charcoal-200'
-                      }`}>
-                        {step.latency_ms}ms
-                      </span>
+                    {/* Expandable Dropdown Drawer Content */}
+                    {isExpanded && hasDetails && (
+                      <div className="px-3 pb-3 pt-1 border-t border-charcoal-200/50 space-y-2 text-[11px] font-mono bg-white/70">
+                        {step.tool_name && (
+                          <div className="flex items-center gap-1 text-[10px] text-charcoal-500">
+                            <span className="font-sans font-semibold text-charcoal-700">Tool:</span>
+                            <code className="text-lime-800 font-bold bg-lime-100/70 px-1.5 py-0.5 rounded border border-lime-200/80">
+                              {step.tool_name}
+                            </code>
+                          </div>
+                        )}
+
+                        {step.arguments && Object.keys(step.arguments).length > 0 && (
+                          <div className="space-y-1">
+                            <span className="font-sans font-semibold text-[10px] text-charcoal-500 uppercase tracking-wider block">
+                              Parameters
+                            </span>
+                            <pre className="p-2 rounded-xl bg-charcoal-950 text-lime-300 text-[10.5px] overflow-x-auto">
+                              {JSON.stringify(step.arguments, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+
+                        {step.result && (
+                          <div className="space-y-1">
+                            <span className="font-sans font-semibold text-[10px] text-charcoal-500 uppercase tracking-wider block">
+                              Output Telemetry Payload
+                            </span>
+                            <pre className="p-2 rounded-xl bg-charcoal-50 border border-charcoal-200 text-charcoal-800 text-[10.5px] overflow-x-auto">
+                              {JSON.stringify(step.result, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 );
