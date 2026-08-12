@@ -478,7 +478,7 @@ export function DisputeDetailView({
               </span>
             </div>
 
-            {/* Trace Steps List with interactive dropdowns */}
+            {/* Trace Steps List with simple, calm styling */}
             <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
               {steps.map((step, idx) => {
                 const stepKey = step.id || `step_${idx}`;
@@ -492,57 +492,31 @@ export function DisputeDetailView({
                 return (
                   <div
                     key={stepKey}
-                    className={`rounded-2xl border text-xs transition-all animate-slide-up overflow-hidden ${
-                      isDecision
-                        ? 'bg-charcoal-950 text-white border-charcoal-900 shadow-sm'
-                        : isEvaluating
-                        ? 'bg-amber-50/70 border-amber-200 text-amber-950'
-                        : isInvoked
-                        ? 'bg-lime-50/70 border-lime-200 text-lime-950'
-                        : 'bg-charcoal-50/70 border-charcoal-200/80 text-charcoal-900'
-                    }`}
+                    className="bg-white hover:bg-charcoal-50/40 border border-charcoal-200/90 rounded-2xl text-xs transition-all overflow-hidden"
                   >
                     {/* Header Click Row */}
                     <div
                       onClick={() => hasDetails && toggleStepExpand(stepKey)}
-                      className={`flex items-center justify-between p-3 select-none ${hasDetails ? 'cursor-pointer hover:bg-black/5 transition-colors' : ''}`}
+                      className={`flex items-center justify-between p-3 select-none ${hasDetails ? 'cursor-pointer' : ''}`}
                     >
                       <div className="flex items-center gap-2.5 truncate">
-                        <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] flex-shrink-0 ${
-                            isDecision
-                              ? 'bg-lime-400 text-charcoal-950 font-bold'
-                              : isEvaluating
-                              ? 'bg-amber-400 text-amber-950'
-                              : isInvoked
-                              ? 'bg-lime-500 text-white'
-                              : isCompleted
-                              ? 'bg-lime-100 text-lime-700'
-                              : 'bg-charcoal-200 text-charcoal-700'
-                          }`}
-                        >
+                        <div className="w-5 h-5 rounded-full bg-charcoal-100 text-charcoal-700 flex items-center justify-center text-[10px] flex-shrink-0">
                           {isCompleted ? (
-                            <Check className="w-3 h-3 stroke-[3]" />
+                            <Check className="w-3 h-3 text-charcoal-800 stroke-[2.5]" />
                           ) : isDecision ? (
-                            <Shield className="w-3 h-3" />
-                          ) : isInvoked ? (
-                            <Zap className="w-3 h-3 fill-current" />
-                          ) : isEvaluating ? (
-                            <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                            <Shield className="w-3 h-3 text-charcoal-900 stroke-[2]" />
                           ) : (
-                            <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                            <div className={`w-1.5 h-1.5 rounded-full ${isEvaluating ? 'bg-charcoal-700 animate-pulse' : 'bg-charcoal-400'}`} />
                           )}
                         </div>
-                        <span className={`font-sans font-medium truncate ${isDecision ? 'text-lime-300 font-semibold' : 'text-charcoal-900'}`}>
+                        <span className="font-sans font-medium text-charcoal-900 truncate">
                           {step.label}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                         {step.latency_ms > 0 && (
-                          <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
-                            isDecision ? 'bg-charcoal-800 text-lime-400 border-charcoal-700' : 'bg-white text-charcoal-400 border-charcoal-200'
-                          }`}>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border bg-charcoal-50 text-charcoal-500 border-charcoal-200">
                             {step.latency_ms}ms
                           </span>
                         )}
@@ -561,11 +535,11 @@ export function DisputeDetailView({
 
                     {/* Expandable Dropdown Drawer Content */}
                     {isExpanded && hasDetails && (
-                      <div className="px-3 pb-3 pt-1 border-t border-charcoal-200/50 space-y-2 text-[11px] font-mono bg-white/70">
+                      <div className="px-3 pb-3 pt-1 border-t border-charcoal-100 space-y-2 text-[11px] font-mono bg-charcoal-50/50">
                         {step.tool_name && (
                           <div className="flex items-center gap-1 text-[10px] text-charcoal-500">
                             <span className="font-sans font-semibold text-charcoal-700">Tool:</span>
-                            <code className="text-lime-800 font-bold bg-lime-100/70 px-1.5 py-0.5 rounded border border-lime-200/80">
+                            <code className="text-charcoal-900 font-semibold bg-white px-1.5 py-0.5 rounded border border-charcoal-200">
                               {step.tool_name}
                             </code>
                           </div>
@@ -576,7 +550,7 @@ export function DisputeDetailView({
                             <span className="font-sans font-semibold text-[10px] text-charcoal-500 uppercase tracking-wider block">
                               Parameters
                             </span>
-                            <pre className="p-2 rounded-xl bg-charcoal-950 text-lime-300 text-[10.5px] overflow-x-auto">
+                            <pre className="p-2.5 rounded-xl bg-white border border-charcoal-200 text-charcoal-800 text-[10.5px] overflow-x-auto">
                               {JSON.stringify(step.arguments, null, 2)}
                             </pre>
                           </div>
@@ -585,9 +559,9 @@ export function DisputeDetailView({
                         {step.result && (
                           <div className="space-y-1">
                             <span className="font-sans font-semibold text-[10px] text-charcoal-500 uppercase tracking-wider block">
-                              Output Telemetry Payload
+                              Output Telemetry
                             </span>
-                            <pre className="p-2 rounded-xl bg-charcoal-50 border border-charcoal-200 text-charcoal-800 text-[10.5px] overflow-x-auto">
+                            <pre className="p-2.5 rounded-xl bg-white border border-charcoal-200 text-charcoal-800 text-[10.5px] overflow-x-auto">
                               {JSON.stringify(step.result, null, 2)}
                             </pre>
                           </div>
@@ -599,12 +573,10 @@ export function DisputeDetailView({
               })}
 
               {isRunning && (
-                <div className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-lime-50/70 border border-lime-300 text-xs animate-pulse">
-                  <div className="w-4 h-4 rounded-full bg-lime-500 text-charcoal-950 flex items-center justify-center text-[10px] font-bold animate-spin">
-                    <Zap className="w-2.5 h-2.5 fill-current" />
-                  </div>
-                  <span className="font-sans font-semibold text-lime-950">
-                    Executing live tool calling loop...
+                <div className="flex items-center gap-2 p-3 rounded-2xl bg-charcoal-50 border border-charcoal-200 text-xs text-charcoal-600">
+                  <div className="w-1.5 h-1.5 rounded-full bg-charcoal-600 animate-ping" />
+                  <span className="font-sans font-medium">
+                    Running investigation tool loop...
                   </span>
                 </div>
               )}
