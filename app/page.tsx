@@ -82,10 +82,10 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs">
             <div className="bg-charcoal-50 p-4 rounded-2xl border border-charcoal-200 text-charcoal-700 space-y-1">
               <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-500 block">
-                Supported Network Workflows
+                Supported Payment Rails &amp; Schemes
               </span>
-              <p className="text-xs font-medium text-charcoal-900">
-                Visa 13.1 • Mastercard 4855 • RuPay Non-Receipt • Fraud ATO
+              <p className="text-xs font-semibold text-charcoal-900 font-mono">
+                UPI (NPCI UDIR) • Visa • Mastercard • RuPay • AutoPay Mandates
               </p>
             </div>
           </div>
