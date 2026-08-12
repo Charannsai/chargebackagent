@@ -14,7 +14,6 @@ import { JsonViewer } from './JsonViewer';
 import {
   ArrowLeft,
   Play,
-  ShieldCheck,
   CheckCircle2,
   AlertTriangle,
   RotateCcw,
@@ -27,11 +26,11 @@ import {
   Zap,
   Check,
   AlertCircle,
-  HelpCircle,
   History,
-  SlidersHorizontal,
   Copy,
   ChevronDown,
+  ChevronUp,
+  Shield,
   Layers,
 } from 'lucide-react';
 
@@ -62,19 +61,19 @@ export function DisputeDetailView({
   const [currentRun, setCurrentRun] = useState<AgentRun | null>(null);
   const [rebuttalText, setRebuttalText] = useState('');
   const [showCaseFacts, setShowCaseFacts] = useState(false);
-  const [operatorGuidance, setOperatorGuidance] = useState('');
-  const [showGuidanceInput, setShowGuidanceInput] = useState(false);
+  const [showRawTelemetry, setShowRawTelemetry] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [showOverrideMenu, setShowOverrideMenu] = useState(false);
   const [overrideNotes, setOverrideNotes] = useState('');
   const [copiedRebuttal, setCopiedRebuttal] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const traceEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll trace
-  useEffect(() => {
-    traceEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [steps]);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   // Load dispute context on mount
   useEffect(() => {
@@ -115,7 +114,7 @@ export function DisputeDetailView({
     }
   };
 
-  const handleStartInvestigation = async (customGuidance?: string) => {
+  const handleStartInvestigation = async () => {
     if (!dispute) return;
     setIsRunning(true);
     setHasStartedInvestigation(true);
@@ -129,7 +128,6 @@ export function DisputeDetailView({
         body: JSON.stringify({
           disputeId: dispute.id,
           engineMode,
-          operatorGuidance: customGuidance || operatorGuidance,
         }),
       });
 
@@ -176,13 +174,6 @@ export function DisputeDetailView({
     }
   };
 
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
-
   const handleApplyReview = async (
     action: 'APPROVED' | 'OVERRIDDEN',
     overrideVerdict?: AgentVerdict
@@ -210,31 +201,29 @@ export function DisputeDetailView({
         onRunComplete();
         setShowOverrideMenu(false);
 
-        // Update local dispute status
         if (result.dispute) {
           dispute.status = result.dispute.status;
         }
 
-        // Update rebuttal text dynamically if overridden
         if (overrideVerdict === 'ACCEPT_REFUND') {
           setRebuttalText(
             `RAZORPAY DISPUTE RESOLUTION ADVICE - REFUND RECOMMENDED\nDate: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}\nDispute ID: ${dispute.id}\nCardholder: ${dispute.customer_name}\nDisputed Amount: ₹${dispute.amount.toLocaleString('en-IN')}\n\nOPERATOR OVERRIDE ACTION:\nOperator reviewed case facts and determined that accepting this dispute and initiating an immediate credit is the optimal resolution.\n\nReason: ${overrideNotes || 'Manual risk supervisor override'}`
           );
-          showToast(`Verdict overridden to: Accept Full Refund`);
+          showToast(`Verdict updated: Accept Full Refund`);
         } else if (overrideVerdict === 'REPRESENT_DISPUTE') {
           setRebuttalText(
             `FORMAL CHARGEBACK REPRESENTMENT REBUTTAL\nDate: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}\nMerchant: ${dispute.merchant_name}\nCardholder Name: ${dispute.customer_name}\nARN: ${dispute.arn}\nDisputed Amount: ₹${dispute.amount.toLocaleString('en-IN')}\n\nSTATEMENT OF REBUTTAL:\nThe merchant respectfully contests the chargeback claim. Sufficient authorization and fulfillment evidence exists to validate this transaction.\n\nOperator Note: ${overrideNotes || 'Representment approved by human operator'}`
           );
-          showToast(`Verdict overridden to: Represent Dispute`);
+          showToast(`Verdict updated: Represent Dispute`);
         } else if (overrideVerdict === 'ESCALATE_TO_HUMAN') {
-          showToast(`Verdict overridden to: Escalate to Operations Desk`);
+          showToast(`Verdict updated: Escalate to Operations`);
         } else if (action === 'APPROVED') {
           showToast(`Resolution approved & submitted to card network!`);
         }
       }
     } catch (err) {
       console.error('Review submit error:', err);
-      showToast('Failed to apply review action');
+      showToast('Failed to apply action');
     } finally {
       setIsSubmittingReview(false);
     }
@@ -266,18 +255,16 @@ export function DisputeDetailView({
   const reasonInfo = getReasonLabel(dispute.reason);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-fade-in pb-12 relative">
-      {/* Floating Action Toast Notification */}
+    <div className="max-w-5xl mx-auto space-y-6 animate-fade-in pb-16 relative">
+      {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-20 right-8 z-50 bg-charcoal-950 text-white px-4 py-3 rounded-2xl shadow-2xl border border-charcoal-800 flex items-center gap-2.5 text-xs font-semibold animate-slide-up">
-          <div className="w-2.5 h-2.5 rounded-full bg-lime-400 animate-ping"></div>
+          <div className="w-2 h-2 rounded-full bg-lime-400 animate-pulse"></div>
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* ==================================================== */}
-      {/* 1. TOP NAVIGATION BAR                                */}
-      {/* ==================================================== */}
+      {/* Top Navigation */}
       <div className="flex items-center justify-between">
         <button
           onClick={onBack}
@@ -288,175 +275,131 @@ export function DisputeDetailView({
         </button>
 
         <div className="flex items-center gap-2">
-          {hasStartedInvestigation && (
-            <button
-              onClick={() => setShowCaseFacts(!showCaseFacts)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-charcoal-600 hover:text-charcoal-950 bg-white border border-charcoal-200 hover:border-charcoal-300 transition-colors shadow-subtle"
-            >
-              <Layers className="w-3.5 h-3.5 text-charcoal-400" />
-              <span>{showCaseFacts ? 'Hide Raw Facts' : 'View Raw Facts'}</span>
-            </button>
-          )}
-
           {currentRun && (
             <button
               onClick={() => onViewAudit(dispute)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-charcoal-600 hover:text-charcoal-950 bg-white border border-charcoal-200 hover:border-charcoal-300 transition-colors shadow-subtle"
             >
               <History className="w-3.5 h-3.5 text-charcoal-400" />
-              <span>Audit Log</span>
+              <span>Audit Trail</span>
             </button>
           )}
         </div>
       </div>
 
       {/* ==================================================== */}
-      {/* 2. CRISP HERO BANNER: Amount, Identity & Primary CTA */}
+      {/* UNIFIED HERO CARD: Minimalist, Calm & High-Impact    */}
       {/* ==================================================== */}
-      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-charcoal-200 shadow-subtle flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2.5">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="font-mono font-bold text-charcoal-950 text-sm">
-              {dispute.id}
-            </span>
-            <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold border ${reasonInfo.color}`}>
-              {reasonInfo.label}
-            </span>
-            {dispute.status === 'RESOLVED_REPRESENTED' && (
-              <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-lime-50 text-lime-800 border border-lime-200">
-                Represented (Won)
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-charcoal-200 shadow-subtle space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-xs font-bold text-charcoal-400 uppercase tracking-wider">
+                {dispute.id}
               </span>
-            )}
-            {dispute.status === 'RESOLVED_REFUNDED' && (
-              <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-rose-50 text-rose-800 border border-rose-200">
-                Refund Accepted
+              <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold border ${reasonInfo.color}`}>
+                {reasonInfo.label}
               </span>
-            )}
-            {dispute.status === 'ESCALATED' && (
-              <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-                Escalated to Ops
-              </span>
-            )}
-            {dispute.status === 'UNDER_INVESTIGATION' && (
-              <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-blue-50 text-blue-800 border border-blue-200">
-                AI Investigated (Pending Sign-off)
-              </span>
-            )}
-            {dispute.status === 'PENDING' && (
-              <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-charcoal-100 text-charcoal-700 border border-charcoal-200">
-                Pending Action
-              </span>
-            )}
-          </div>
+              {dispute.status === 'RESOLVED_REPRESENTED' && (
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-lime-50 text-lime-800 border border-lime-200">
+                  Represented (Won)
+                </span>
+              )}
+              {dispute.status === 'RESOLVED_REFUNDED' && (
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-rose-50 text-rose-800 border border-rose-200">
+                  Refund Accepted
+                </span>
+              )}
+              {dispute.status === 'UNDER_INVESTIGATION' && (
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold bg-blue-50 text-blue-800 border border-blue-200">
+                  Ready for Review
+                </span>
+              )}
+            </div>
 
-          <div className="flex flex-wrap items-baseline gap-5">
-            <span className="text-3xl sm:text-4xl font-extrabold text-charcoal-950 font-mono tracking-tight">
-              {formatINR(dispute.amount)}
-            </span>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-charcoal-500">
-              <span>Merchant: <strong className="text-charcoal-800">{dispute.merchant_name}</strong></span>
-              <span>•</span>
-              <span>Buyer: <strong className="text-charcoal-800">{dispute.customer_name}</strong></span>
-              <span>•</span>
-              <span>Network: <strong className="text-charcoal-800">{dispute.network}</strong></span>
-              <span>•</span>
-              <span>Due: <strong className="text-charcoal-800">{formatDate(dispute.due_date)}</strong></span>
+            <div className="flex items-baseline gap-4 pt-1">
+              <span className="text-3xl sm:text-4xl font-extrabold text-charcoal-950 font-mono tracking-tight">
+                {formatINR(dispute.amount)}
+              </span>
+              <div className="hidden sm:flex items-center gap-2 text-xs text-charcoal-500 font-medium">
+                <span>{dispute.merchant_name}</span>
+                <span>•</span>
+                <span>{dispute.customer_name}</span>
+                <span>•</span>
+                <span>Due {formatDate(dispute.due_date)}</span>
+              </div>
             </div>
           </div>
+
+          {/* Primary Action Button */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => handleStartInvestigation()}
+              disabled={isRunning}
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-xs font-bold transition-all shadow-subtle ${
+                isRunning
+                  ? 'bg-lime-500 text-white cursor-not-allowed animate-pulse ring-2 ring-lime-400/40'
+                  : 'bg-charcoal-950 hover:bg-charcoal-800 text-white hover:ring-2 hover:ring-lime-400/30 hover:scale-[1.01]'
+              }`}
+            >
+              <Play className={`w-3.5 h-3.5 ${isRunning ? 'animate-spin' : 'text-lime-400 fill-lime-400'}`} />
+              <span>
+                {isRunning
+                  ? 'Analyzing Evidence Live...'
+                  : hasStartedInvestigation
+                  ? 'Re-Run AI Resolver'
+                  : 'Start AI Resolution'}
+              </span>
+            </button>
+          </div>
         </div>
 
-        {/* Primary CTA Button */}
-        <button
-          onClick={() => handleStartInvestigation()}
-          disabled={isRunning}
-          className={`flex-shrink-0 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-xs font-bold transition-all shadow-subtle ${
-            isRunning
-              ? 'bg-lime-500 text-white cursor-not-allowed animate-pulse ring-2 ring-lime-400/50'
-              : 'bg-charcoal-950 hover:bg-charcoal-800 text-white hover:ring-2 hover:ring-lime-400/40 hover:scale-[1.01]'
-          }`}
-        >
-          <Play className={`w-4 h-4 ${isRunning ? 'animate-spin' : 'text-lime-400 fill-lime-400'}`} />
-          <span>
-            {isRunning
-              ? 'Agent Investigating Live...'
-              : hasStartedInvestigation
-              ? 'Re-Run AI Resolver'
-              : 'Start AI Resolution'}
-          </span>
-        </button>
-      </div>
-
-      {/* ==================================================== */}
-      {/* 3. CASE CONTEXT: Customer Claim vs Merchant Stance   */}
-      {/* ==================================================== */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Customer's Claim Card */}
-        <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="w-5 h-5 rounded-full bg-rose-50 text-rose-700 font-bold text-xs flex items-center justify-center border border-rose-200">
-              !
+        {/* Dispute Claim Summary Strip */}
+        <div className="p-4 rounded-2xl bg-charcoal-50/80 border border-charcoal-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-500">
+              Cardholder Stated Claim
             </span>
-            <span className="text-[11px] font-bold text-charcoal-700 uppercase tracking-wider">
-              Cardholder's Stated Issue (Bank Claim)
+            <p className="text-charcoal-800 italic leading-relaxed">
+              &quot;{dispute.customer_claim_statement || 'Buyer filed a chargeback claiming non-receipt or unauthorized transaction.'}&quot;
+            </p>
+          </div>
+
+          <div className="text-right sm:border-l sm:border-charcoal-200 sm:pl-4 flex-shrink-0 text-[11px] text-charcoal-500 space-y-0.5">
+            <span className="block font-medium">Fulfillment Baseline</span>
+            <span className="font-mono text-charcoal-800 block">
+              {transaction?.shipping_carrier ? `${transaction.shipping_carrier} • ${transaction.shipping_tracking_no}` : 'Razorpay Gateway Settled'}
             </span>
           </div>
-          <p className="text-xs text-charcoal-800 bg-rose-50/30 p-3.5 rounded-2xl border border-rose-100 italic leading-relaxed">
-            "{dispute.customer_claim_statement || 'Customer filed a chargeback with their bank claiming non-receipt or unauthorized transaction.'}"
-          </p>
-        </div>
-
-        {/* Merchant Fulfillment Card */}
-        <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="w-5 h-5 rounded-full bg-charcoal-100 text-charcoal-700 font-bold text-xs flex items-center justify-center border border-charcoal-200">
-              i
-            </span>
-            <span className="text-[11px] font-bold text-charcoal-700 uppercase tracking-wider">
-              Merchant Order & Fulfillment Record
-            </span>
-          </div>
-          <p className="text-xs text-charcoal-800 bg-charcoal-50 p-3.5 rounded-2xl border border-charcoal-200 leading-relaxed">
-            {dispute.merchant_fulfillment_note || 'Order processed through Razorpay payment gateway and dispatched to courier.'}
-          </p>
         </div>
       </div>
 
       {/* ==================================================== */}
-      {/* 4. BEFORE AI RESOLUTION: Case Facts & Ready Banner   */}
+      {/* STAGE 1: BEFORE RUNNING AI (Clean Case Baseline)     */}
       {/* ==================================================== */}
-      {(!hasStartedInvestigation || showCaseFacts) && (
+      {!hasStartedInvestigation && (
         <div className="space-y-4 animate-fade-in">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-charcoal-500">
-              Raw Evidence Baseline & Telemetry
-            </span>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            {/* Payment Facts */}
-            <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2.5">
+            {/* Gateway Payment */}
+            <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-3">
               <div className="flex items-center gap-2 border-b border-charcoal-100 pb-2.5">
                 <CreditCard className="w-4 h-4 text-charcoal-500" />
-                <h4 className="font-bold text-charcoal-900">Gateway Payment</h4>
+                <h4 className="font-bold text-charcoal-900">Payment Telemetry</h4>
               </div>
               {transaction ? (
-                <div className="space-y-1.5 text-[11.5px]">
+                <div className="space-y-2 text-charcoal-600">
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">Transaction ID</span>
-                    <span className="font-mono text-charcoal-900">{transaction.id}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-charcoal-500">3DS Auth</span>
+                    <span>3DS Challenge</span>
                     <span className={`font-bold ${transaction.three_ds_status === 'AUTHENTICATED' ? 'text-lime-700' : 'text-rose-600'}`}>
                       {transaction.three_ds_status}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">IP Origin</span>
-                    <span className="font-mono text-charcoal-800">{transaction.ip_country}</span>
+                    <span>IP Location</span>
+                    <span className="font-mono text-charcoal-900">{transaction.ip_country}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">Proxy/VPN</span>
+                    <span>Proxy / VPN</span>
                     <span className={`font-semibold ${transaction.is_vpn_or_proxy ? 'text-rose-600' : 'text-lime-700'}`}>
                       {transaction.is_vpn_or_proxy ? 'Flagged Proxy' : 'Clean IP'}
                     </span>
@@ -467,63 +410,59 @@ export function DisputeDetailView({
               )}
             </div>
 
-            {/* Courier Facts */}
-            <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2.5">
+            {/* Courier Logistics */}
+            <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-3">
               <div className="flex items-center gap-2 border-b border-charcoal-100 pb-2.5">
                 <Truck className="w-4 h-4 text-charcoal-500" />
-                <h4 className="font-bold text-charcoal-900">Courier Logistics</h4>
+                <h4 className="font-bold text-charcoal-900">Carrier Logistics</h4>
               </div>
               {transaction ? (
-                <div className="space-y-1.5 text-[11.5px]">
+                <div className="space-y-2 text-charcoal-600">
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">Carrier Partner</span>
-                    <span className="font-medium text-charcoal-900">{transaction.shipping_carrier || 'Not assigned'}</span>
+                    <span>Carrier</span>
+                    <span className="font-medium text-charcoal-900">{transaction.shipping_carrier || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">AWB Tracking</span>
+                    <span>Tracking AWB</span>
                     <span className="font-mono text-charcoal-900">{transaction.shipping_tracking_no || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">Item</span>
-                    <span className="text-charcoal-800 font-medium truncate max-w-[140px]">{transaction.item_description}</span>
+                    <span>Item</span>
+                    <span className="text-charcoal-900 font-medium truncate max-w-[130px]">{transaction.item_description}</span>
                   </div>
                 </div>
               ) : (
-                <div className="py-4 text-center text-charcoal-400">Loading courier facts...</div>
+                <div className="py-4 text-center text-charcoal-400">Loading logistics facts...</div>
               )}
             </div>
 
-            {/* Customer Facts */}
-            <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-2.5">
+            {/* Customer Risk */}
+            <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle space-y-3">
               <div className="flex items-center gap-2 border-b border-charcoal-100 pb-2.5">
                 <User className="w-4 h-4 text-charcoal-500" />
-                <h4 className="font-bold text-charcoal-900">Customer Risk</h4>
+                <h4 className="font-bold text-charcoal-900">Buyer Risk Profile</h4>
               </div>
               {userProfile ? (
-                <div className="space-y-1.5 text-[11.5px]">
+                <div className="space-y-2 text-charcoal-600">
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">Customer</span>
-                    <span className="font-medium text-charcoal-900">{userProfile.full_name}</span>
+                    <span>Total Orders</span>
+                    <span className="font-medium text-charcoal-900">{userProfile.total_orders_count} orders</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">Orders</span>
-                    <span className="text-charcoal-900">{userProfile.total_orders_count} lifetime</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-charcoal-500">Prior Disputes</span>
+                    <span>Dispute History</span>
                     <span className={`font-bold ${userProfile.chargeback_history_count > 0 ? 'text-rose-600' : 'text-lime-700'}`}>
                       {userProfile.chargeback_history_count} previous
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-charcoal-500">Risk Tier</span>
+                    <span>Risk Level</span>
                     <span className={`font-bold ${userProfile.risk_flag === 'LOW' ? 'text-lime-700' : 'text-rose-600'}`}>
                       {userProfile.risk_flag}
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="py-4 text-center text-charcoal-400">Loading customer facts...</div>
+                <div className="py-4 text-center text-charcoal-400">Loading profile facts...</div>
               )}
             </div>
           </div>
@@ -531,379 +470,276 @@ export function DisputeDetailView({
       )}
 
       {/* ==================================================== */}
-      {/* 5. AFTER AI RESOLUTION: Decision Trace & Workshop    */}
+      {/* STAGE 2: AFTER RUNNING AI (Calm & Unified View)      */}
       {/* ==================================================== */}
       {hasStartedInvestigation && (
         <div className="space-y-6 animate-fade-in">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left: Decision Trace (5 cols) */}
-            <div className="lg:col-span-5 bg-white rounded-3xl p-5 border border-charcoal-200 shadow-subtle flex flex-col h-[560px]">
-              <div className="flex items-center justify-between pb-3.5 border-b border-charcoal-100">
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-lime-600" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-charcoal-900">
-                    Live Decision Trace
+          {/* Resolution Result Banner (Calm & Aesthetic) */}
+          {currentRun && (
+            <div
+              className={`p-6 sm:p-7 rounded-3xl border transition-all ${
+                effectiveVerdict === 'REPRESENT_DISPUTE'
+                  ? 'bg-lime-50/70 border-lime-300 ring-1 ring-lime-400/20'
+                  : effectiveVerdict === 'ACCEPT_REFUND'
+                  ? 'bg-rose-50/70 border-rose-200 ring-1 ring-rose-300/20'
+                  : 'bg-amber-50/70 border-amber-200 ring-1 ring-amber-300/20'
+              }`}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-500 block">
+                    {isOverridden ? 'Operator Overridden Verdict' : 'Autonomous AI Recommendation'}
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-charcoal-950 tracking-tight">
+                    {effectiveVerdict === 'REPRESENT_DISPUTE' && 'Represent Dispute (Contest Customer Claim)'}
+                    {effectiveVerdict === 'ACCEPT_REFUND' && 'Accept Dispute (Issue Full Merchant Refund)'}
+                    {effectiveVerdict === 'ESCALATE_TO_HUMAN' && 'Escalate to Manual Compliance Desk'}
+                  </h3>
+                  {isOverridden && currentRun.human_notes && (
+                    <p className="text-xs text-charcoal-600 italic">
+                      Supervisor Note: &quot;{currentRun.human_notes}&quot;
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0 border-charcoal-200/60">
+                  <span className="text-3xl font-extrabold text-charcoal-950 font-mono">
+                    {currentRun.confidence_score}%
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal-500">
+                    Confidence
                   </span>
                 </div>
-                <span className="text-[11px] font-mono text-charcoal-400">
-                  {steps.length} steps logged
+              </div>
+            </div>
+          )}
+
+          {/* Evidence Synthesis & Verification Highlights */}
+          {currentRun?.evaluation && (
+            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-charcoal-200 shadow-subtle space-y-4">
+              <div className="flex items-center justify-between border-b border-charcoal-100 pb-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal-900">
+                  Evidence Verification Checklist
+                </h4>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                    currentRun.evaluation.evidence_strength === 'HIGH'
+                      ? 'bg-lime-100 text-lime-800 border border-lime-300'
+                      : currentRun.evaluation.evidence_strength === 'MODERATE'
+                      ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                      : 'bg-rose-100 text-rose-800 border border-rose-300'
+                  }`}
+                >
+                  Evidence Strength: {currentRun.evaluation.evidence_strength}
                 </span>
               </div>
 
-              {/* Steps Scroll Area */}
-              <div className="flex-1 overflow-y-auto py-3 space-y-2.5 font-mono text-xs pr-1">
-                {steps.map((step, idx) => {
-                  const isCompleted = step.event_type === 'TOOL_COMPLETED';
-                  const isDecision = step.event_type === 'DECISION_READY';
-                  const isInvoked = step.event_type === 'TOOL_INVOKED';
-                  const isEvaluating = step.event_type === 'EVALUATING';
+              <p className="text-xs text-charcoal-700 leading-relaxed">
+                {currentRun.evaluation.operational_summary}
+              </p>
 
-                  return (
-                    <div key={step.id || idx} className="flex items-start gap-2.5 group animate-fade-in">
-                      <div className="mt-0.5 flex-shrink-0">
-                        {isCompleted && (
-                          <div className="w-4 h-4 rounded-full bg-lime-100 text-lime-700 flex items-center justify-center border border-lime-300">
-                            <Check className="w-2.5 h-2.5 stroke-[3]" />
-                          </div>
-                        )}
-                        {isDecision && (
-                          <div className="w-4 h-4 rounded-full bg-charcoal-950 text-lime-400 flex items-center justify-center">
-                            <Sparkles className="w-2.5 h-2.5" />
-                          </div>
-                        )}
-                        {isInvoked && (
-                          <div className="w-4 h-4 rounded-full bg-charcoal-100 text-charcoal-600 flex items-center justify-center animate-pulse">
-                            <Clock className="w-2.5 h-2.5" />
-                          </div>
-                        )}
-                        {isEvaluating && (
-                          <div className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center animate-spin">
-                            <span className="text-[9px]">⟳</span>
-                          </div>
-                        )}
-                        {step.event_type === 'INVESTIGATION_STARTED' && (
-                          <div className="w-4 h-4 rounded-full bg-charcoal-200 text-charcoal-700 flex items-center justify-center">
-                            <span className="text-[9px]">▶</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex-1 bg-charcoal-50/80 rounded-xl p-2.5 border border-charcoal-200 hover:border-charcoal-300 transition-colors">
-                        <div className="flex items-center justify-between gap-1">
-                          <span
-                            className={`font-sans text-xs ${
-                              isDecision
-                                ? 'font-bold text-charcoal-950'
-                                : isCompleted
-                                ? 'text-charcoal-900 font-medium'
-                                : 'text-charcoal-600'
-                            }`}
-                          >
-                            {step.label}
-                          </span>
-                          {step.latency_ms > 0 && (
-                            <span className="text-[10px] text-charcoal-400 bg-white px-1.5 py-0.5 rounded border border-charcoal-200 whitespace-nowrap font-mono">
-                              {step.latency_ms}ms
-                            </span>
-                          )}
+              {/* Corroborating Signals */}
+              {currentRun.evaluation.corroborating_signals.length > 0 && (
+                <div className="space-y-2 pt-1">
+                  <ul className="space-y-2">
+                    {currentRun.evaluation.corroborating_signals.map((sig, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-xs text-charcoal-800">
+                        <div className="w-4 h-4 rounded-full bg-lime-100 text-lime-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check className="w-2.5 h-2.5 stroke-[3]" />
                         </div>
+                        <span>{sig}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-                        {step.arguments && Object.keys(step.arguments).length > 0 && (
-                          <JsonViewer
-                            title={`Params: ${step.tool_name}`}
-                            data={step.arguments}
-                            defaultExpanded={false}
-                          />
-                        )}
-                        {step.result && Object.keys(step.result).length > 0 && (
-                          <JsonViewer
-                            title={`Result: ${step.tool_name || 'Output'}`}
-                            data={step.result}
-                            defaultExpanded={false}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-                <div ref={traceEndRef} />
-              </div>
+              {/* Contradictory Flags */}
+              {currentRun.evaluation.contradictory_signals.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-charcoal-100">
+                  <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">
+                    Risk Flags &amp; Discrepancies
+                  </span>
+                  <ul className="space-y-1.5">
+                    {currentRun.evaluation.contradictory_signals.map((sig, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs text-amber-900">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <span>{sig}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
 
-              {/* Guidance injection footer */}
-              <div className="pt-3 border-t border-charcoal-100">
-                {!showGuidanceInput ? (
-                  <button
-                    onClick={() => setShowGuidanceInput(true)}
-                    className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium text-charcoal-600 hover:text-charcoal-950 bg-charcoal-50 hover:bg-charcoal-100 transition-colors"
-                  >
-                    <SlidersHorizontal className="w-3.5 h-3.5 text-charcoal-400" />
-                    <span>Rerun with Custom Operator Guidance</span>
-                  </button>
-                ) : (
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      placeholder="e.g. Focus on OTP timestamp verification..."
-                      value={operatorGuidance}
-                      onChange={(e) => setOperatorGuidance(e.target.value)}
-                      className="w-full p-2.5 text-xs border border-charcoal-300 rounded-xl text-charcoal-900 focus:outline-none focus:ring-2 focus:ring-lime-400"
-                    />
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => setShowGuidanceInput(false)}
-                        className="px-3 py-1.5 text-xs text-charcoal-500 hover:text-charcoal-900"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowGuidanceInput(false);
-                          handleStartInvestigation(operatorGuidance);
-                        }}
-                        disabled={isRunning}
-                        className="px-3.5 py-1.5 bg-charcoal-950 text-white rounded-xl text-xs font-medium"
-                      >
-                        Rerun Agent
-                      </button>
-                    </div>
-                  </div>
-                )}
+          {/* Calm Execution Trace Timeline (Collapsible Details) */}
+          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-charcoal-200 shadow-subtle space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-lime-600" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal-900">
+                  Autonomous Decision Trace
+                </h4>
               </div>
+              <button
+                onClick={() => setShowRawTelemetry(!showRawTelemetry)}
+                className="text-[11px] text-charcoal-500 hover:text-charcoal-950 font-medium flex items-center gap-1 transition-colors"
+              >
+                <span>{showRawTelemetry ? 'Hide Raw JSON' : 'Show Raw JSON'}</span>
+                {showRawTelemetry ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </button>
             </div>
 
-            {/* Right: AI Verdict & Workshop (7 cols) */}
-            <div className="lg:col-span-7 space-y-5">
-              {/* Verdict Banner */}
-              {currentRun && (
-                <div
-                  className={`p-6 rounded-3xl border shadow-sm transition-all ${
-                    effectiveVerdict === 'REPRESENT_DISPUTE'
-                      ? 'bg-lime-50/70 border-lime-300 ring-1 ring-lime-400/30'
-                      : effectiveVerdict === 'ACCEPT_REFUND'
-                      ? 'bg-rose-50/70 border-rose-200 ring-1 ring-rose-300/30'
-                      : 'bg-amber-50/70 border-amber-200 ring-1 ring-amber-300/30'
+            {/* Clean Timeline Steps */}
+            <div className="space-y-2.5 font-mono text-xs">
+              {steps.map((step, idx) => {
+                const isCompleted = step.event_type === 'TOOL_COMPLETED';
+                const isDecision = step.event_type === 'DECISION_READY';
+
+                return (
+                  <div key={step.id || idx} className="flex items-center justify-between p-3 rounded-2xl bg-charcoal-50/70 border border-charcoal-200/80">
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
+                        isDecision
+                          ? 'bg-charcoal-950 text-lime-400'
+                          : isCompleted
+                          ? 'bg-lime-100 text-lime-700'
+                          : 'bg-charcoal-200 text-charcoal-700'
+                      }`}>
+                        {isCompleted ? '✓' : isDecision ? '★' : '•'}
+                      </div>
+                      <span className="font-sans font-medium text-charcoal-900 text-xs">
+                        {step.label}
+                      </span>
+                    </div>
+
+                    {step.latency_ms > 0 && (
+                      <span className="text-[10px] font-mono text-charcoal-400 bg-white px-2 py-0.5 rounded-lg border border-charcoal-200">
+                        {step.latency_ms}ms
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Raw JSON Inspector (When Toggled) */}
+            {showRawTelemetry && currentRun && (
+              <div className="pt-3 border-t border-charcoal-100 space-y-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-500 block">
+                  Raw Agent Decision Package Payload
+                </span>
+                <JsonViewer title="Complete AgentRun State" data={currentRun} defaultExpanded={false} />
+              </div>
+            )}
+          </div>
+
+          {/* Formal Rebuttal Dossier Preview */}
+          {currentRun && (
+            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-charcoal-200 shadow-subtle space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-charcoal-600" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal-900">
+                    Formal Card Network Rebuttal Dossier
+                  </h4>
+                </div>
+
+                <button
+                  onClick={copyRebuttalToClipboard}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-xl text-charcoal-600 hover:text-charcoal-950 bg-charcoal-50 hover:bg-charcoal-100 border border-charcoal-200 transition-colors font-medium"
+                >
+                  {copiedRebuttal ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-lime-600" />
+                      <span className="text-lime-700 font-semibold">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-charcoal-400" />
+                      <span>Copy Letter</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <textarea
+                rows={7}
+                value={rebuttalText}
+                onChange={(e) => setRebuttalText(e.target.value)}
+                className="w-full p-4 font-mono text-xs text-charcoal-800 bg-charcoal-50/40 border border-charcoal-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:bg-white leading-relaxed"
+              />
+            </div>
+          )}
+
+          {/* Human Review Action Bar (Clean & Grounded) */}
+          {currentRun && (
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-charcoal-200 shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-xs text-charcoal-500">
+                <span className="font-semibold text-charcoal-900">Human-in-the-Loop Safeguard:</span> Review the evidence and sign off to transmit resolution.
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="relative">
+                  <button
+                    onClick={() => setShowOverrideMenu(!showOverrideMenu)}
+                    className="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-charcoal-700 bg-charcoal-100 hover:bg-charcoal-200 transition-colors"
+                  >
+                    Override Verdict
+                  </button>
+
+                  {showOverrideMenu && (
+                    <div className="absolute right-0 bottom-full mb-2 w-64 bg-white rounded-2xl border border-charcoal-200 shadow-2xl p-3.5 z-30 space-y-2 text-xs">
+                      <p className="font-bold text-charcoal-900">
+                        Manual Operator Override
+                      </p>
+                      <input
+                        type="text"
+                        placeholder="Reason for override..."
+                        value={overrideNotes}
+                        onChange={(e) => setOverrideNotes(e.target.value)}
+                        className="w-full p-2 border border-charcoal-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-lime-400"
+                      />
+                      <div className="flex flex-col gap-1 pt-1">
+                        <button
+                          onClick={() => handleApplyReview('OVERRIDDEN', 'REPRESENT_DISPUTE')}
+                          className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-lime-50 text-charcoal-800 font-medium"
+                        >
+                          Represent Dispute
+                        </button>
+                        <button
+                          onClick={() => handleApplyReview('OVERRIDDEN', 'ACCEPT_REFUND')}
+                          className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-rose-50 text-charcoal-800 font-medium"
+                        >
+                          Accept Full Refund
+                        </button>
+                        <button
+                          onClick={() => handleApplyReview('OVERRIDDEN', 'ESCALATE_TO_HUMAN')}
+                          className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-amber-50 text-charcoal-800 font-medium"
+                        >
+                          Escalate to Compliance
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => handleApplyReview('APPROVED')}
+                  disabled={isSubmittingReview || isApproved}
+                  className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-subtle ${
+                    isApproved
+                      ? 'bg-lime-100 text-lime-800 border border-lime-300 cursor-default'
+                      : 'bg-charcoal-950 hover:bg-charcoal-800 text-white hover:ring-2 hover:ring-lime-400/40 hover:scale-[1.01]'
                   }`}
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-charcoal-600 block">
-                        {isOverridden ? 'Operator Overridden Verdict (Manual Decision)' : 'AI Recommended Resolution'}
-                      </span>
-                      <h3 className="text-xl font-bold text-charcoal-950 mt-1">
-                        {effectiveVerdict === 'REPRESENT_DISPUTE' && 'Represent Dispute (Reject Customer Claim)'}
-                        {effectiveVerdict === 'ACCEPT_REFUND' && 'Accept Dispute (Full Merchant Refund)'}
-                        {effectiveVerdict === 'ESCALATE_TO_HUMAN' && 'Escalate to Manual Compliance Desk'}
-                      </h3>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-3xl font-extrabold text-charcoal-950 font-mono">
-                        {currentRun.confidence_score}%
-                      </span>
-                      <p className="text-[10px] text-charcoal-500 font-semibold uppercase">
-                        {isOverridden ? 'Manual Review' : 'Confidence'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {isApproved && (
-                    <div className="mt-3.5 pt-3.5 border-t border-lime-200 flex items-center gap-1.5 text-xs text-lime-900 font-medium">
-                      <CheckCircle2 className="w-4 h-4 text-lime-600" />
-                      <span>Approved by Human Operator • Submitted to Card Network</span>
-                    </div>
-                  )}
-                  {isOverridden && (
-                    <div className="mt-3.5 pt-3.5 border-t border-charcoal-200/80 flex items-start gap-2 text-xs text-charcoal-900 font-medium">
-                      <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <span>
-                          Decision explicitly overridden by Human Supervisor to: <strong>{currentRun.human_override_verdict}</strong>
-                        </span>
-                        {currentRun.human_notes && (
-                          <p className="text-[11px] text-charcoal-600 italic mt-0.5">
-                            Reason: "{currentRun.human_notes}"
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Why This Decision Panel */}
-              {currentRun?.evaluation && (
-                <div className="bg-white rounded-3xl p-6 border border-charcoal-200 shadow-subtle space-y-4">
-                  <div className="flex items-center justify-between border-b border-charcoal-100 pb-3">
-                    <div className="flex items-center gap-2">
-                      <HelpCircle className="w-4 h-4 text-charcoal-600" />
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal-900">
-                        Why this decision? (Evidence Assessment)
-                      </h4>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-charcoal-500">Evidence Strength:</span>
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                          currentRun.evaluation.evidence_strength === 'HIGH'
-                            ? 'bg-lime-100 text-lime-800 border border-lime-300'
-                            : currentRun.evaluation.evidence_strength === 'MODERATE'
-                            ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                            : 'bg-rose-100 text-rose-800 border border-rose-300'
-                        }`}
-                      >
-                        {currentRun.evaluation.evidence_strength}
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-charcoal-700 bg-charcoal-50 p-3.5 rounded-2xl border border-charcoal-200 leading-relaxed">
-                    {currentRun.evaluation.operational_summary}
-                  </p>
-
-                  {/* Corroborating Signals */}
-                  {currentRun.evaluation.corroborating_signals.length > 0 && (
-                    <div className="space-y-2">
-                      <span className="text-[11px] font-bold text-charcoal-500 uppercase tracking-wider block">
-                        Corroborating Evidence
-                      </span>
-                      <ul className="space-y-1.5">
-                        {currentRun.evaluation.corroborating_signals.map((sig, i) => (
-                          <li key={i} className="flex items-start gap-2 text-xs text-charcoal-800 font-sans">
-                            <Check className="w-3.5 h-3.5 text-lime-600 mt-0.5 flex-shrink-0" />
-                            <span>{sig}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Risk Flags */}
-                  {currentRun.evaluation.contradictory_signals.length > 0 && (
-                    <div className="space-y-2 pt-2 border-t border-charcoal-100">
-                      <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wider block">
-                        Risk Flags & Discrepancies
-                      </span>
-                      <ul className="space-y-1.5">
-                        {currentRun.evaluation.contradictory_signals.map((sig, i) => (
-                          <li key={i} className="flex items-start gap-2 text-xs text-amber-900 font-sans">
-                            <AlertTriangle className="w-3.5 h-3.5 text-amber-600 mt-0.5 flex-shrink-0" />
-                            <span>{sig}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Rebuttal Letter Card */}
-              {currentRun && (
-                <div className="bg-white rounded-3xl p-6 border border-charcoal-200 shadow-subtle space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-charcoal-600" />
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal-900">
-                        Formal Representment Rebuttal Letter
-                      </h4>
-                    </div>
-
-                    <button
-                      onClick={copyRebuttalToClipboard}
-                      className="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg text-charcoal-600 hover:text-charcoal-950 bg-charcoal-50 hover:bg-charcoal-100 border border-charcoal-200 transition-colors"
-                    >
-                      {copiedRebuttal ? (
-                        <>
-                          <Check className="w-3 h-3 text-lime-600" />
-                          <span className="text-lime-700">Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3 text-charcoal-400" />
-                          <span>Copy Letter</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                  <textarea
-                    rows={8}
-                    value={rebuttalText}
-                    onChange={(e) => setRebuttalText(e.target.value)}
-                    className="w-full p-4 font-mono text-xs text-charcoal-800 bg-charcoal-50/40 border border-charcoal-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-lime-400 focus:bg-white leading-relaxed"
-                  />
-                </div>
-              )}
-
-              {/* Human Review Action Bar */}
-              {currentRun && (
-                <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="text-xs text-charcoal-500">
-                    <span className="font-semibold text-charcoal-900">Human-in-the-Loop Review:</span> Operator approval commits the final resolution to the network.
-                  </div>
-
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowOverrideMenu(!showOverrideMenu)}
-                        className="px-3.5 py-2.5 rounded-xl text-xs font-medium text-charcoal-700 bg-charcoal-100 hover:bg-charcoal-200 transition-colors"
-                      >
-                        Override Verdict
-                      </button>
-
-                      {showOverrideMenu && (
-                        <div className="absolute right-0 bottom-full mb-2 w-64 bg-white rounded-2xl border border-charcoal-200 shadow-xl p-3.5 z-30 space-y-2 text-xs">
-                          <p className="font-semibold text-charcoal-900">
-                            Operator Decision Override
-                          </p>
-                          <input
-                            type="text"
-                            placeholder="Reason for override..."
-                            value={overrideNotes}
-                            onChange={(e) => setOverrideNotes(e.target.value)}
-                            className="w-full p-2 border border-charcoal-300 rounded-xl text-xs"
-                          />
-                          <div className="flex flex-col gap-1 pt-1">
-                            <button
-                              onClick={() => handleApplyReview('OVERRIDDEN', 'REPRESENT_DISPUTE')}
-                              className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-lime-50 text-charcoal-800 font-medium"
-                            >
-                              Represent Dispute
-                            </button>
-                            <button
-                              onClick={() => handleApplyReview('OVERRIDDEN', 'ACCEPT_REFUND')}
-                              className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-rose-50 text-charcoal-800 font-medium"
-                            >
-                              Accept Full Refund
-                            </button>
-                            <button
-                              onClick={() => handleApplyReview('OVERRIDDEN', 'ESCALATE_TO_HUMAN')}
-                              className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-amber-50 text-charcoal-800 font-medium"
-                            >
-                              Escalate to Ops
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => handleApplyReview('APPROVED')}
-                      disabled={isSubmittingReview || isApproved}
-                      className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-subtle ${
-                        isApproved
-                          ? 'bg-lime-100 text-lime-800 border border-lime-300 cursor-default'
-                          : 'bg-charcoal-950 hover:bg-charcoal-800 text-white hover:ring-2 hover:ring-lime-400/40'
-                      }`}
-                    >
-                      <Check className="w-4 h-4 text-lime-400" />
-                      <span>{isApproved ? 'Approved & Submitted' : 'Approve & Submit'}</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+                  <Check className="w-4 h-4 text-lime-400" />
+                  <span>{isApproved ? 'Approved & Submitted' : 'Approve & Submit'}</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>
