@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Dispute, DisputeStatus } from '@/lib/types';
 import { formatINR, formatDate } from '@/lib/utils';
-import { CustomerClaimModal } from '@/components/CustomerClaimModal';
 import {
   Search,
   CheckCircle2,
@@ -12,9 +11,6 @@ import {
   RotateCcw,
   Clock,
   ChevronRight,
-  CreditCard,
-  Building2,
-  BookOpen,
 } from 'lucide-react';
 
 interface DisputeTableProps {
@@ -31,20 +27,6 @@ export function DisputeTable({
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
-  const [expandedClaimIds, setExpandedClaimIds] = useState<
-    Record<string, boolean>
-  >({});
-  const [activeClaimDispute, setActiveClaimDispute] = useState<Dispute | null>(
-    null
-  );
-
-  const toggleClaimExpand = (disputeId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setExpandedClaimIds((prev) => ({
-      ...prev,
-      [disputeId]: !prev[disputeId],
-    }));
-  };
 
   const handleRowClick = (dispute: Dispute) => {
     if (onSelectDispute) {
@@ -76,28 +58,28 @@ export function DisputeTable({
     switch (status) {
       case 'RESOLVED_REPRESENTED':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-lime-50 text-lime-800 border border-lime-200 shadow-sm">
-            <CheckCircle2 className="w-3.5 h-3.5 text-lime-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-xs">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
             Represented
           </span>
         );
       case 'RESOLVED_REFUNDED':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">
             <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
             Refund Accepted
           </span>
         );
       case 'ESCALATED':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
             <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
             Escalated to Ops
           </span>
         );
       case 'UNDER_INVESTIGATION':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
             Ready for Sign-Off
           </span>
@@ -105,9 +87,9 @@ export function DisputeTable({
       case 'PENDING':
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-charcoal-100 text-charcoal-700 border border-charcoal-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-charcoal-100 text-charcoal-700 border border-charcoal-200">
             <Clock className="w-3.5 h-3.5 text-charcoal-400" />
-            Pending Resolution
+            Pending Action
           </span>
         );
     }
@@ -166,22 +148,23 @@ export function DisputeTable({
         </div>
       </div>
 
-      {/* Clean Disputes Table */}
+      {/* Streamlined, Minimal Disputes Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-charcoal-50/60 border-b border-charcoal-200 text-[11px] font-semibold uppercase tracking-wider text-charcoal-500">
-              <th className="py-3 px-6">Dispute & Reason</th>
-              <th className="py-3 px-4">Merchant & Customer</th>
-              <th className="py-3 px-4">Amount</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-6 text-right">Details</th>
+              <th className="py-3.5 px-6">Dispute ID</th>
+              <th className="py-3.5 px-4">Merchant &amp; Customer</th>
+              <th className="py-3.5 px-4">Reason</th>
+              <th className="py-3.5 px-4">Amount</th>
+              <th className="py-3.5 px-4">Status</th>
+              <th className="py-3.5 px-6 text-right">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-charcoal-100 text-xs text-charcoal-800">
             {filteredDisputes.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-12 text-center text-charcoal-400 text-sm">
+                <td colSpan={6} className="py-12 text-center text-charcoal-400 text-sm">
                   No disputes found matching the selected filter.
                 </td>
               </tr>
@@ -198,101 +181,60 @@ export function DisputeTable({
                       isSelected ? 'bg-lime-50/40' : ''
                     }`}
                   >
-                    {/* Column 1: Dispute ID & Reason */}
-                    <td className="py-4 px-6">
-                      <div className="flex flex-col gap-1 max-w-[280px]">
+                    {/* Column 1: Dispute ID & Due Date */}
+                    <td className="py-3.5 px-6">
+                      <div className="flex flex-col gap-0.5">
                         <span className="font-mono font-semibold text-charcoal-950 text-xs group-hover:text-lime-700 transition-colors">
                           {dispute.id}
                         </span>
-                        <div>
-                          <span
-                            className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${reasonInfo.color}`}
-                          >
-                            {reasonInfo.label}
-                          </span>
-                        </div>
-                        {dispute.customer_claim_statement && (() => {
-                          const isClaimExpanded = Boolean(
-                            expandedClaimIds[dispute.id]
-                          );
-                          return (
-                            <div
-                              onClick={(e) => toggleClaimExpand(dispute.id, e)}
-                              className="group/claim p-1.5 -ml-1 rounded-lg hover:bg-lime-50/60 border border-transparent hover:border-lime-200 transition-all cursor-pointer select-none space-y-1"
-                              title={
-                                isClaimExpanded
-                                  ? 'Click to collapse'
-                                  : 'Click to read full claim statement'
-                              }
-                            >
-                              <p
-                                className={`text-[11px] leading-relaxed transition-all ${
-                                  isClaimExpanded
-                                    ? 'not-italic font-normal text-charcoal-900'
-                                    : 'italic text-charcoal-500 line-clamp-1 truncate max-w-[260px]'
-                                }`}
-                              >
-                                &quot;{dispute.customer_claim_statement}&quot;
-                              </p>
-                              <div className="flex items-center justify-between">
-                                <button
-                                  type="button"
-                                  onClick={(e) =>
-                                    toggleClaimExpand(dispute.id, e)
-                                  }
-                                  className="text-[10px] font-semibold text-lime-800 hover:text-lime-950 bg-lime-100/90 hover:bg-lime-200/90 px-1.5 py-0.2 rounded transition-colors"
-                                >
-                                  {isClaimExpanded ? 'Show less' : 'Read more'}
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })()}
-                        <span className="text-[10.5px] text-charcoal-400">
-                          Due by {formatDate(dispute.due_date)}
+                        <span className="text-[11px] text-charcoal-400">
+                          Due {formatDate(dispute.due_date)}
                         </span>
                       </div>
                     </td>
 
                     {/* Column 2: Merchant & Customer */}
-                    <td className="py-4 px-4">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-charcoal-900">
+                    <td className="py-3.5 px-4">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-semibold text-charcoal-900">
                           {dispute.merchant_name}
                         </span>
-                        <span className="text-charcoal-500 text-[11.5px]">
+                        <span className="text-charcoal-500 text-[11px]">
                           {dispute.customer_name}
-                        </span>
-                        <span className="text-charcoal-400 text-[11px] font-mono truncate max-w-[180px]">
-                          {dispute.customer_email}
                         </span>
                       </div>
                     </td>
 
-                    {/* Column 3: Amount */}
-                    <td className="py-4 px-4">
-                      <div className="flex flex-col">
+                    {/* Column 3: Reason */}
+                    <td className="py-3.5 px-4">
+                      <span
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${reasonInfo.color}`}
+                      >
+                        {reasonInfo.label}
+                      </span>
+                    </td>
+
+                    {/* Column 4: Amount & Network */}
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-1.5">
                         <span className="font-bold text-charcoal-950 text-sm font-mono">
                           {formatINR(dispute.amount)}
                         </span>
-                        <div className="flex items-center gap-1 text-[11px] text-charcoal-500">
-                          <CreditCard className="w-3 h-3 text-charcoal-400" />
-                          <span>{dispute.network}</span>
-                        </div>
+                        <span className="text-[10.5px] font-medium text-charcoal-500 bg-charcoal-100 px-1.5 py-0.5 rounded border border-charcoal-200">
+                          {dispute.network}
+                        </span>
                       </div>
                     </td>
 
-                    {/* Column 4: Status */}
-                    <td className="py-4 px-4">
-                      <div className="flex flex-col gap-1 items-start">
-                        {getStatusBadge(dispute.status)}
-                      </div>
+                    {/* Column 5: Status */}
+                    <td className="py-3.5 px-4">
+                      {getStatusBadge(dispute.status)}
                     </td>
 
-                    {/* Column 5: View Details Indicator */}
-                    <td className="py-4 px-6 text-right">
-                      <div className="inline-flex items-center gap-1 text-xs font-medium text-charcoal-500 group-hover:text-charcoal-950 transition-colors">
-                        <span>Open</span>
+                    {/* Column 6: Action */}
+                    <td className="py-3.5 px-6 text-right">
+                      <div className="inline-flex items-center gap-1 text-xs font-semibold text-charcoal-500 group-hover:text-charcoal-950 transition-colors">
+                        <span>View</span>
                         <ChevronRight className="w-3.5 h-3.5 text-charcoal-400 group-hover:text-charcoal-950 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </td>
@@ -303,13 +245,6 @@ export function DisputeTable({
           </tbody>
         </table>
       </div>
-
-      {/* Customer Claim Modal */}
-      <CustomerClaimModal
-        dispute={activeClaimDispute}
-        isOpen={Boolean(activeClaimDispute)}
-        onClose={() => setActiveClaimDispute(null)}
-      />
     </div>
   );
 }
