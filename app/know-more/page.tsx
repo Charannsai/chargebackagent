@@ -40,12 +40,9 @@ export default function KnowMorePage() {
 
         {/* Clean Hero Header */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-charcoal-200 shadow-subtle space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">💡</span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-charcoal-950 tracking-tight">
-              Why This Architecture Matters to Razorpay
-            </h1>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-charcoal-950 tracking-tight">
+            Why This Architecture Matters to Razorpay
+          </h1>
           <p className="text-xs sm:text-sm text-charcoal-600 leading-relaxed max-w-2xl">
             A first-principles breakdown of the business value, deterministic agent loop, card network compliance protections, and human-in-the-loop safety architecture.
           </p>

@@ -172,7 +172,7 @@ async function runGroqAutonomousLoop(
 
         emitStep(
           'TOOL_COMPLETED',
-          `✓ ${toolResult.label}`,
+          toolResult.label,
           toolName,
           args,
           toolResult.data,
@@ -214,7 +214,7 @@ async function runGroqAutonomousLoop(
 
       emitStep(
         'DECISION_READY',
-        `✓ Decision package finalized: ${run.final_verdict} (${run.confidence_score}% Confidence)`,
+        `Decision package finalized: ${run.final_verdict} (${run.confidence_score}% Confidence)`,
         undefined,
         undefined,
         {
@@ -260,7 +260,7 @@ async function runDeterministicEngine(
   const txResult = await executeAgentTool('get_transaction_details', { transaction_id: dispute.transaction_id });
   emitStep(
     'TOOL_COMPLETED',
-    `✓ ${txResult.label}`,
+    txResult.label,
     'get_transaction_details',
     { transaction_id: dispute.transaction_id },
     txResult.data,
@@ -283,7 +283,7 @@ async function runDeterministicEngine(
       });
       emitStep(
         'TOOL_COMPLETED',
-        `✓ ${courierResult.label}`,
+        courierResult.label,
         'verify_delivery_courier',
         { tracking_number: tx.shipping_tracking_no },
         courierResult.data,
@@ -299,7 +299,7 @@ async function runDeterministicEngine(
       const profileResult = await executeAgentTool('get_user_behavior_profile', { email: dispute.customer_email });
       emitStep(
         'TOOL_COMPLETED',
-        `✓ ${profileResult.label}`,
+        profileResult.label,
         'get_user_behavior_profile',
         { email: dispute.customer_email },
         profileResult.data,
@@ -387,7 +387,7 @@ async function runDeterministicEngine(
     const profileResult = await executeAgentTool('get_user_behavior_profile', { email: dispute.customer_email });
     emitStep(
       'TOOL_COMPLETED',
-      `✓ ${profileResult.label}`,
+      profileResult.label,
       'get_user_behavior_profile',
       { email: dispute.customer_email },
       profileResult.data,
@@ -405,7 +405,7 @@ async function runDeterministicEngine(
     });
     emitStep(
       'TOOL_COMPLETED',
-      `✓ ${riskResult.label}`,
+      riskResult.label,
       'calculate_risk_score',
       { user_id: dispute.user_id },
       riskResult.data,
@@ -418,7 +418,7 @@ async function runDeterministicEngine(
       });
       emitStep(
         'TOOL_COMPLETED',
-        `✓ ${courierResult.label}`,
+        courierResult.label,
         'verify_delivery_courier',
         { tracking_number: tx.shipping_tracking_no },
         courierResult.data,
@@ -465,7 +465,7 @@ async function runDeterministicEngine(
     const profileResult = await executeAgentTool('get_user_behavior_profile', { email: dispute.customer_email });
     emitStep(
       'TOOL_COMPLETED',
-      `✓ ${profileResult.label}`,
+      profileResult.label,
       'get_user_behavior_profile',
       { email: dispute.customer_email },
       profileResult.data,
@@ -509,7 +509,7 @@ async function runDeterministicEngine(
 
   emitStep(
     'DECISION_READY',
-    `✓ Decision package finalized: ${run.final_verdict} (${run.confidence_score}% Confidence)`,
+    `Decision package finalized: ${run.final_verdict} (${run.confidence_score}% Confidence)`,
     undefined,
     undefined,
     {

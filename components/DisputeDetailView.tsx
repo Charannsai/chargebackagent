@@ -30,6 +30,7 @@ import {
   Copy,
   ChevronDown,
   ChevronUp,
+  Shield,
   Layers,
 } from 'lucide-react';
 
@@ -508,7 +509,7 @@ export function DisputeDetailView({
                     >
                       <div className="flex items-center gap-2.5 truncate">
                         <div
-                          className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] flex-shrink-0 ${
+                          className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] flex-shrink-0 ${
                             isDecision
                               ? 'bg-lime-400 text-charcoal-950 font-bold'
                               : isEvaluating
@@ -520,7 +521,17 @@ export function DisputeDetailView({
                               : 'bg-charcoal-200 text-charcoal-700'
                           }`}
                         >
-                          {isCompleted ? '✓' : isDecision ? '★' : isInvoked ? '⚡' : isEvaluating ? '✦' : '•'}
+                          {isCompleted ? (
+                            <Check className="w-3 h-3 stroke-[3]" />
+                          ) : isDecision ? (
+                            <Shield className="w-3 h-3" />
+                          ) : isInvoked ? (
+                            <Zap className="w-3 h-3 fill-current" />
+                          ) : isEvaluating ? (
+                            <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                          ) : (
+                            <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                          )}
                         </div>
                         <span className={`font-sans font-medium truncate ${isDecision ? 'text-lime-300 font-semibold' : 'text-charcoal-900'}`}>
                           {step.label}
@@ -588,9 +599,9 @@ export function DisputeDetailView({
               })}
 
               {isRunning && (
-                <div className="flex items-center gap-2 p-2.5 rounded-2xl bg-lime-50/70 border border-lime-300 text-xs animate-pulse">
+                <div className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-lime-50/70 border border-lime-300 text-xs animate-pulse">
                   <div className="w-4 h-4 rounded-full bg-lime-500 text-charcoal-950 flex items-center justify-center text-[10px] font-bold animate-spin">
-                    ✦
+                    <Zap className="w-2.5 h-2.5 fill-current" />
                   </div>
                   <span className="font-sans font-semibold text-lime-950">
                     Executing live tool calling loop...
