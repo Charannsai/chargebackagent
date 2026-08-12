@@ -8,7 +8,8 @@ import { DisputeTable } from '@/components/DisputeTable';
 import { DisputeDetailView } from '@/components/DisputeDetailView';
 import { AuditTrailModal } from '@/components/AuditTrailModal';
 import { CreateDisputeModal } from '@/components/CreateDisputeModal';
-import { ArrowUpRight, Sparkles, ShieldCheck, ArrowRight } from 'lucide-react';
+import { KnowMoreModal } from '@/components/KnowMoreModal';
+import { ArrowUpRight, Mail } from 'lucide-react';
 import { formatINR } from '@/lib/utils';
 
 export default function Home() {
@@ -16,6 +17,7 @@ export default function Home() {
   const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
   const [auditDispute, setAuditDispute] = useState<Dispute | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isKnowMoreOpen, setIsKnowMoreOpen] = useState(false);
 
   // Load disputes
   useEffect(() => {
@@ -41,7 +43,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex flex-col font-sans selection:bg-lime-200 selection:text-lime-950">
       {/* Sleek Top Navigation */}
-      <Header onOpenCreateModal={() => setIsCreateModalOpen(true)} />
+      <Header
+        onOpenCreateModal={() => setIsCreateModalOpen(true)}
+        onOpenKnowMore={() => setIsKnowMoreOpen(true)}
+      />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* ==================================================== */}
@@ -177,25 +182,36 @@ export default function Home() {
         )}
       </main>
 
-      {/* Clean Footer */}
-      <footer className="w-full bg-white border-t border-charcoal-200 py-6 mt-12 text-xs text-charcoal-500">
+      {/* Clean Minimalist Footer */}
+      <footer className="w-full bg-white border-t border-charcoal-100 py-6 mt-12 text-xs text-charcoal-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="font-bold text-charcoal-900">
-              Razorpay Agentic Chargeback Resolver
+              Razorpay Chargeback Resolver
             </span>
             <span>•</span>
-            <span>Authored by Charan Sai Pathuri (AI Builder Target Role)</span>
+            <span>Autonomous Risk Operations</span>
           </div>
-          <div className="flex items-center gap-4 text-charcoal-400 font-mono text-[11px]">
-            <span>Llama 3.3 70B (Groq)</span>
-            <span>•</span>
-            <span>Autonomous State Machine</span>
-            <span>•</span>
-            <span>Inter Typography</span>
+
+          <div className="flex items-center gap-1.5 text-xs text-charcoal-600">
+            <span>Built by</span>
+            <a
+              href="mailto:pathurisai31@gmail.com"
+              className="font-bold text-charcoal-950 hover:text-lime-700 underline inline-flex items-center gap-1 transition-colors"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Charan Sai</span>
+            </a>
+            <span className="text-charcoal-400">(pathurisai31@gmail.com)</span>
           </div>
         </div>
       </footer>
+
+      {/* Know More Info & Architecture Modal */}
+      <KnowMoreModal
+        isOpen={isKnowMoreOpen}
+        onClose={() => setIsKnowMoreOpen(false)}
+      />
 
       {/* Immutable Operational Audit Trail Modal */}
       <AuditTrailModal
