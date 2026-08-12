@@ -32,6 +32,7 @@ import {
   ChevronUp,
   Shield,
   Layers,
+  Loader2,
 } from 'lucide-react';
 
 interface DisputeDetailViewProps {
@@ -348,13 +349,17 @@ export function DisputeDetailView({
           <button
             onClick={() => handleStartInvestigation()}
             disabled={isRunning}
-            className={`flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-xs font-bold transition-all shadow-subtle ${
+            className={`flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl text-xs font-bold transition-all shadow-subtle ${
               isRunning
-                ? 'bg-lime-500 text-white cursor-not-allowed animate-pulse ring-2 ring-lime-400/40'
+                ? 'bg-charcoal-900 text-white cursor-wait opacity-90'
                 : 'bg-charcoal-950 hover:bg-charcoal-800 text-white hover:ring-2 hover:ring-lime-400/30 hover:scale-[1.01]'
             }`}
           >
-            <Play className={`w-3.5 h-3.5 ${isRunning ? 'animate-spin' : 'text-lime-400 fill-lime-400'}`} />
+            {isRunning ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-lime-400" />
+            ) : (
+              <Play className="w-3.5 h-3.5 text-lime-400 fill-lime-400" />
+            )}
             <span>
               {isRunning
                 ? 'Analyzing Telemetry Live...'
