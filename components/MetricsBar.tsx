@@ -3,7 +3,7 @@
 import React from 'react';
 import { Dispute } from '@/lib/types';
 import { formatINR } from '@/lib/utils';
-import { TrendingUp, ShieldAlert, Zap, Layers } from 'lucide-react';
+import { ShieldAlert, Clock, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 interface MetricsBarProps {
   disputes: Dispute[];
@@ -11,29 +11,46 @@ interface MetricsBarProps {
 
 export function MetricsBar({ disputes }: MetricsBarProps) {
   const totalAmount = disputes.reduce((sum, d) => sum + d.amount, 0);
-  const representedCount = disputes.filter(
-    (d) => d.status === 'RESOLVED_REPRESENTED'
+
+  const pendingCount = disputes.filter(
+    (d) => d.status === 'PENDING' || d.status === 'UNDER_INVESTIGATION'
   ).length;
+
+  const representedDisputes = disputes.filter(
+    (d) => d.status === 'RESOLVED_REPRESENTED'
+  );
+  const defendedAmount = representedDisputes.reduce(
+    (sum, d) => sum + d.amount,
+    0
+  );
+  const representedCount = representedDisputes.length;
+
   const refundedCount = disputes.filter(
     (d) => d.status === 'RESOLVED_REFUNDED'
   ).length;
 
-  const totalResolved = representedCount + refundedCount;
-  const winRate = totalResolved > 0 ? Math.round((representedCount / totalResolved) * 100) : 85;
+  const escalatedCount = disputes.filter(
+    (d) => d.status === 'ESCALATED'
+  ).length;
+
+  const resolvedCount = representedCount + refundedCount + escalatedCount;
+  const totalCount = disputes.length;
+  const resolutionPercentage =
+    totalCount > 0 ? Math.round((resolvedCount / totalCount) * 100) : 0;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* Metric 1: Total Disputed Volume */}
+      {/* Metric 1: Total In Dispute */}
       <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle flex items-center justify-between">
         <div className="space-y-1">
           <p className="text-[11px] font-bold text-charcoal-500 uppercase tracking-wider">
-            Total Disputed Volume
+            Total In Dispute
           </p>
           <p className="text-2xl font-extrabold text-charcoal-950 font-mono tracking-tight">
             {formatINR(totalAmount)}
           </p>
-          <p className="text-[11px] text-charcoal-400">
-            Across {disputes.length} merchant cases
+          <p className="text-xs text-charcoal-500">
+            {totalCount} active merchant cases
           </p>
         </div>
         <div className="w-10 h-10 rounded-2xl bg-charcoal-50 border border-charcoal-100 flex items-center justify-center text-charcoal-700">
@@ -41,69 +58,66 @@ export function MetricsBar({ disputes }: MetricsBarProps) {
         </div>
       </div>
 
-      {/* Metric 2: Representment Win Rate */}
+      {/* Metric 2: Pending Review */}
       <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle flex items-center justify-between">
         <div className="space-y-1">
           <p className="text-[11px] font-bold text-charcoal-500 uppercase tracking-wider">
-            Representment Win Rate
+            Pending Review
           </p>
-          <div className="flex items-baseline gap-2">
-            <p className="text-2xl font-extrabold text-charcoal-950 font-mono tracking-tight">
-              {winRate}%
-            </p>
-            <span className="inline-flex items-center text-[10px] font-bold text-lime-800 bg-lime-50 px-1.5 py-0.5 rounded-full border border-lime-200">
-              +14% vs manual
-            </span>
-          </div>
-          <p className="text-[11px] text-charcoal-400">
-            {representedCount} won • {refundedCount} refunded
+          <p className="text-2xl font-extrabold text-charcoal-950 font-mono tracking-tight">
+            {pendingCount}
+          </p>
+          <p className="text-xs text-charcoal-500">
+            {pendingCount === 0
+              ? 'All cases resolved'
+              : `${pendingCount} awaiting decision`}
+          </p>
+        </div>
+        <div className="w-10 h-10 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-center text-amber-700">
+          <Clock className="w-5 h-5 text-amber-600" />
+        </div>
+      </div>
+
+      {/* Metric 3: Defended Volume */}
+      <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle flex items-center justify-between">
+        <div className="space-y-1">
+          <p className="text-[11px] font-bold text-charcoal-500 uppercase tracking-wider">
+            Defended Volume
+          </p>
+          <p className="text-2xl font-extrabold text-charcoal-950 font-mono tracking-tight">
+            {formatINR(defendedAmount)}
+          </p>
+          <p className="text-xs text-charcoal-500">
+            {representedCount === 0
+              ? '0 representments filed'
+              : `${representedCount} case${representedCount > 1 ? 's' : ''} represented`}
           </p>
         </div>
         <div className="w-10 h-10 rounded-2xl bg-lime-50 border border-lime-200 flex items-center justify-center text-lime-700">
-          <TrendingUp className="w-5 h-5 text-lime-600" />
+          <ShieldCheck className="w-5 h-5 text-lime-600" />
         </div>
       </div>
 
-      {/* Metric 3: Resolution Latency */}
+      {/* Metric 4: Resolved Queue */}
       <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle flex items-center justify-between">
         <div className="space-y-1">
           <p className="text-[11px] font-bold text-charcoal-500 uppercase tracking-wider">
-            AI Resolution Speed
-          </p>
-          <div className="flex items-baseline gap-2">
-            <p className="text-2xl font-extrabold text-charcoal-950 font-mono tracking-tight">
-              ~1.2s
-            </p>
-            <span className="text-[10.5px] text-charcoal-400 font-medium">
-              vs 48h manual
-            </span>
-          </div>
-          <p className="text-[11px] text-charcoal-400">
-            Multi-tool autonomous cycle
-          </p>
-        </div>
-        <div className="w-10 h-10 rounded-2xl bg-charcoal-50 border border-charcoal-100 flex items-center justify-center text-charcoal-700">
-          <Zap className="w-5 h-5 text-lime-500" />
-        </div>
-      </div>
-
-      {/* Metric 4: Card Schemes Verified */}
-      <div className="bg-white p-5 rounded-3xl border border-charcoal-200 shadow-subtle flex items-center justify-between">
-        <div className="space-y-1">
-          <p className="text-[11px] font-bold text-charcoal-500 uppercase tracking-wider">
-            Network Evidence
+            Resolved Queue
           </p>
           <p className="text-2xl font-extrabold text-charcoal-950 font-mono tracking-tight">
-            100%
+            {resolvedCount} / {totalCount}
           </p>
-          <p className="text-[11px] text-charcoal-400">
-            Visa, Mastercard, RuPay
+          <p className="text-xs text-charcoal-500">
+            {resolvedCount === 0
+              ? '0% processed'
+              : `${resolutionPercentage}% processed (${representedCount} rep · ${refundedCount} ref)`}
           </p>
         </div>
         <div className="w-10 h-10 rounded-2xl bg-charcoal-50 border border-charcoal-100 flex items-center justify-center text-charcoal-700">
-          <Layers className="w-5 h-5 text-charcoal-600" />
+          <CheckCircle2 className="w-5 h-5 text-charcoal-600" />
         </div>
       </div>
     </div>
   );
 }
+
