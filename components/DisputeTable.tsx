@@ -17,7 +17,7 @@ import {
 
 interface DisputeTableProps {
   disputes: Dispute[];
-  onSelectDispute: (dispute: Dispute) => void;
+  onSelectDispute?: (dispute: Dispute) => void;
   selectedDisputeId?: string;
 }
 
