@@ -17,6 +17,38 @@
   }
 }
 
+/* Shimmer animation for skeleton loaders */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #F4F4F5 0%,
+    #E4E4E7 50%,
+    #F4F4F5 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+.skeleton-shimmer-darker {
+  background: linear-gradient(
+    90deg,
+    #E4E4E7 0%,
+    #D4D4D8 50%,
+    #E4E4E7 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
 /* Custom minimal scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -45,3 +77,4 @@
   border-color: #84CC16;
   box-shadow: 0 0 15px -3px rgba(132, 204, 22, 0.25);
 }
+

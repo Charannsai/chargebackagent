@@ -11,6 +11,7 @@ import { Mail } from 'lucide-react';
 
 export default function Home() {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [auditDispute, setAuditDispute] = useState<Dispute | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -20,6 +21,7 @@ export default function Home() {
   }, []);
 
   const fetchDisputes = async () => {
+    setIsLoading(true);
     try {
       const res = await fetch('/api/disputes');
       if (res.ok) {
@@ -28,6 +30,8 @@ export default function Home() {
       }
     } catch (err) {
       console.error('Failed to fetch disputes:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -55,11 +59,11 @@ export default function Home() {
         </div>
 
         {/* Clean, Compact KPI Metrics Bar */}
-        <MetricsBar disputes={disputes} />
+        <MetricsBar disputes={disputes} isLoading={isLoading} />
 
         {/* Dispute Operations Queue Table */}
         <div className="space-y-3 pt-1">
-          <DisputeTable disputes={disputes} />
+          <DisputeTable disputes={disputes} isLoading={isLoading} />
         </div>
       </main>
 

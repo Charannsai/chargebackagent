@@ -17,13 +17,112 @@ interface DisputeTableProps {
   disputes: Dispute[];
   onSelectDispute?: (dispute: Dispute) => void;
   selectedDisputeId?: string;
+  isLoading?: boolean;
+}
+
+export function DisputeTableSkeleton() {
+  return (
+    <div className="bg-white rounded-3xl border border-charcoal-200 shadow-subtle overflow-hidden animate-fade-in">
+      {/* Table Header Controls Skeleton */}
+      <div className="p-4 sm:p-5 border-b border-charcoal-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Filter Tabs Skeleton */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+          <div className="h-8 w-24 rounded-xl skeleton-shimmer shrink-0" />
+          <div className="h-8 w-32 rounded-xl skeleton-shimmer shrink-0" />
+          <div className="h-8 w-28 rounded-xl skeleton-shimmer shrink-0" />
+          <div className="h-8 w-24 rounded-xl skeleton-shimmer shrink-0" />
+          <div className="h-8 w-24 rounded-xl skeleton-shimmer shrink-0" />
+        </div>
+
+        {/* Search Input Skeleton */}
+        <div className="h-8 w-full sm:w-72 rounded-xl skeleton-shimmer shrink-0" />
+      </div>
+
+      {/* Streamlined Skeleton Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-charcoal-50/60 border-b border-charcoal-200 text-[11px] font-semibold uppercase tracking-wider text-charcoal-500">
+              <th className="py-3.5 px-6">Dispute ID</th>
+              <th className="py-3.5 px-4">Merchant &amp; Customer</th>
+              <th className="py-3.5 px-4">Reason</th>
+              <th className="py-3.5 px-4">Amount</th>
+              <th className="py-3.5 px-4">Status</th>
+              <th className="py-3.5 px-6 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-charcoal-100">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <tr key={i} className="hover:bg-charcoal-50/40 transition-colors">
+                {/* Column 1: Dispute ID & Due Date */}
+                <td className="py-4 px-6">
+                  <div className="flex flex-col gap-1.5">
+                    <div className="h-3.5 w-24 rounded-md skeleton-shimmer" />
+                    <div className="h-2.5 w-16 rounded-md skeleton-shimmer" />
+                  </div>
+                </td>
+
+                {/* Column 2: Merchant & Customer */}
+                <td className="py-4 px-4">
+                  <div className="flex flex-col gap-1.5">
+                    <div className="h-3.5 w-32 rounded-md skeleton-shimmer" />
+                    <div className="h-2.5 w-20 rounded-md skeleton-shimmer" />
+                  </div>
+                </td>
+
+                {/* Column 3: Reason */}
+                <td className="py-4 px-4">
+                  <div
+                    className="h-5 rounded-full skeleton-shimmer"
+                    style={{
+                      width:
+                        i % 3 === 0
+                          ? '140px'
+                          : i % 3 === 1
+                          ? '120px'
+                          : '160px',
+                    }}
+                  />
+                </td>
+
+                {/* Column 4: Amount & Network */}
+                <td className="py-4 px-4">
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-4 w-16 rounded-md skeleton-shimmer" />
+                    <div className="h-4 w-10 rounded skeleton-shimmer" />
+                  </div>
+                </td>
+
+                {/* Column 5: Status */}
+                <td className="py-4 px-4">
+                  <div className="h-6 w-28 rounded-full skeleton-shimmer" />
+                </td>
+
+                {/* Column 6: Action */}
+                <td className="py-4 px-6 text-right">
+                  <div className="inline-flex items-center justify-end gap-1 ml-auto">
+                    <div className="h-3 w-8 rounded skeleton-shimmer" />
+                    <div className="h-3.5 w-3.5 rounded skeleton-shimmer" />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
 
 export function DisputeTable({
   disputes,
   onSelectDispute,
   selectedDisputeId,
+  isLoading,
 }: DisputeTableProps) {
+  if (isLoading) {
+    return <DisputeTableSkeleton />;
+  }
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL');

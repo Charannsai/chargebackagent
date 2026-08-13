@@ -7,9 +7,34 @@ import { ShieldAlert, Clock, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 interface MetricsBarProps {
   disputes: Dispute[];
+  isLoading?: boolean;
 }
 
-export function MetricsBar({ disputes }: MetricsBarProps) {
+export function MetricsBarSkeleton() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      {[1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          className="bg-white p-4 rounded-2xl border border-charcoal-200 shadow-subtle flex items-center justify-between animate-fade-in"
+        >
+          <div className="space-y-2 w-full pr-3">
+            <div className="h-2.5 w-24 rounded-md skeleton-shimmer" />
+            <div className="h-6 w-32 rounded-lg skeleton-shimmer" />
+            <div className="h-2.5 w-20 rounded-md skeleton-shimmer" />
+          </div>
+          <div className="w-9 h-9 rounded-xl skeleton-shimmer shrink-0" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function MetricsBar({ disputes, isLoading }: MetricsBarProps) {
+  if (isLoading) {
+    return <MetricsBarSkeleton />;
+  }
+
   const totalAmount = disputes.reduce((sum, d) => sum + d.amount, 0);
 
   const pendingCount = disputes.filter(

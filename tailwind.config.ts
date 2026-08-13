@@ -56,6 +56,7 @@ const config: Config = {
         'pulse-subtle': 'pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'fade-in': 'fadeIn 0.25s ease-out forwards',
         'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'shimmer': 'shimmer 1.8s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -65,6 +66,10 @@ const config: Config = {
         slideUp: {
           '0%': { opacity: '0', transform: 'translateY(8px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
         },
       },
     },

@@ -5,9 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { Dispute } from '@/lib/types';
 import { Header } from '@/components/Header';
 import { DisputeDetailView } from '@/components/DisputeDetailView';
+import { DisputeDetailSkeleton } from '@/components/DisputeDetailSkeleton';
 import { AuditTrailModal } from '@/components/AuditTrailModal';
 import { CreateDisputeModal } from '@/components/CreateDisputeModal';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DisputeDetailPage() {
@@ -50,10 +51,7 @@ export default function DisputeDetailPage() {
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isLoading ? (
-          <div className="py-24 flex flex-col items-center justify-center gap-3 text-charcoal-400">
-            <Loader2 className="w-6 h-6 animate-spin text-charcoal-600" />
-            <p className="text-xs font-mono">Loading dispute case file...</p>
-          </div>
+          <DisputeDetailSkeleton />
         ) : !dispute ? (
           <div className="bg-white rounded-3xl p-12 text-center border border-charcoal-200 shadow-subtle space-y-4 max-w-md mx-auto my-12">
             <p className="text-sm font-bold text-charcoal-900">Dispute Not Found</p>
